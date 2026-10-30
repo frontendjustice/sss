@@ -1,0 +1,21 @@
+[project]
+name = "quizengine"
+version = "0.1.0"
+description = "Turns course PDFs and notes into clean, token-efficient sections for exam-style quiz generation."
+requires-python = ">=3.10"
+dependencies = ["pymupdf>=1.24"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+quizengine = "quizengine.cli:main"
+
+[tool.setuptools]
+packages = ["quizengine"]
+
+[tool.setuptools.package-data]
+quizengine = ["profiles/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

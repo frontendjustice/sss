@@ -1,0 +1,21 @@
+{
+  "key": "pep",
+  "name": "PEP (PCN pre-registration exam)",
+  "audience": "Nigerian pharmacy graduates preparing for the Pharmacists Council of Nigeria (PCN) pre-registration exam (PEP)",
+  "standard": "PEP licensing-exam standard: what a newly qualified pharmacist in Nigeria must know and apply in practice",
+  "question_types": ["single best answer", "all of the following EXCEPT", "short clinical case", "calculation", "drug-to-effect or drug-to-mechanism matching"],
+  "options": 4,
+  "difficulty": "mixed",
+  "params": {},
+  "courses": {
+    "PCOL": "Pharmacology",
+    "CLIN": "Clinical Pharmacy and Therapeutics",
+    "PCEU": "Pharmaceutics and Pharmaceutical Technology",
+    "PRAC": "Pharmacy Practice, Dispensing and Pharmaceutical Care",
+    "LAW": "Pharmacy Law and Ethics",
+    "PH": "Public Health and Epidemiology",
+    "MGT": "Pharmacy Management, Supply Chain and Drug Policy",
+    "HERB": "Herbal and Traditional Medicine",
+    "CA": "Current Affairs and Professional Bodies"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "key": "undergrad",
+  "name": "Undergraduate course exam",
+  "audience": "{level} {programme} students at {institution}",
+  "standard": "end-of-semester and continuous-assessment exams for this course, at the depth the notes teach",
+  "question_types": ["single best answer", "all of the following EXCEPT", "definition or concept check", "calculation", "short applied scenario"],
+  "options": 4,
+  "difficulty": "mixed",
+  "params": {"level": "300L", "programme": "Pharmacy", "institution": "a Nigerian university"},
+  "courses": {}
+}
