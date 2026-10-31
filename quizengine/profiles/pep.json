@@ -3,7 +3,13 @@
   "name": "PEP (PCN pre-registration exam)",
   "audience": "Nigerian pharmacy graduates preparing for the Pharmacists Council of Nigeria (PCN) pre-registration exam (PEP)",
   "standard": "PEP licensing-exam standard: what a newly qualified pharmacist in Nigeria must know and apply in practice",
-  "question_types": ["single best answer", "all of the following EXCEPT", "short clinical case", "calculation", "drug-to-effect or drug-to-mechanism matching"],
+  "question_types": [
+    "single best answer",
+    "all of the following EXCEPT",
+    "short clinical case",
+    "calculation",
+    "drug-to-effect or drug-to-mechanism matching"
+  ],
   "options": 4,
   "difficulty": "mixed",
   "params": {},
@@ -17,5 +23,20 @@
     "MGT": "Pharmacy Management, Supply Chain and Drug Policy",
     "HERB": "Herbal and Traditional Medicine",
     "CA": "Current Affairs and Professional Bodies"
-  }
+  },
+  "examples": [
+    {
+      "s": "S1",
+      "q": "A 62-year-old man with asthma needs a beta blocker for angina. Which is the most appropriate choice?",
+      "o": [
+        "Propranolol",
+        "Bisoprolol",
+        "Timolol",
+        "Nadolol"
+      ],
+      "a": 1,
+      "e": "Bisoprolol is cardioselective (beta-1); the others are non-selective and can cause bronchospasm.",
+      "t": "short clinical case"
+    }
+  ]
 }

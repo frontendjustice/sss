@@ -26,11 +26,12 @@ class Profile:
     difficulty: str = "mixed"
     params: dict[str, str] = field(default_factory=dict)
     courses: dict[str, str] = field(default_factory=dict)  # empty = any course name allowed
+    examples: list[dict] = field(default_factory=list)      # style examples shown to the model
 
     def with_params(self, **params: str | None) -> "Profile":
         merged = {**self.params, **{k: v for k, v in params.items() if v}}
         return Profile(self.key, self.name, self.audience, self.standard, list(self.question_types),
-                       self.options, self.difficulty, merged, dict(self.courses))
+                       self.options, self.difficulty, merged, dict(self.courses), list(self.examples))
 
     def render(self, text: str) -> str:
         try:

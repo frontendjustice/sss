@@ -1,9 +1,8 @@
 # Quiz engine
 
-Turns course PDFs and notes into clean, compact sections and a question plan,
-ready for exam-style quiz generation. Built to spend as few model tokens and
-calls as possible. Steps 1–4 below run entirely on your machine and call no AI
-model.
+Turns course PDFs and notes into exam-style multiple-choice questions while
+spending as few model tokens and calls as possible. Steps 1–4 run entirely on
+your machine; only step 5 calls an AI model.
 
 | Step | Module | What it does |
 |---|---|---|
@@ -11,8 +10,8 @@ model.
 | 2. Clean | `clean.py` | Removes running headers/footers, page numbers, contents leaders, bare figure captions and repeated paragraphs; re-joins words split across lines; normalises bullets and whitespace; detects headings and their levels. |
 | 3. Split | `split.py` | Cuts the text into topic sections that keep their heading path ("Chapter › Topic"). Merges tiny sections, splits long ones, skips references, contents, objectives and exercises. |
 | 4. Plan | `plan.py` | Shares the requested number of questions across sections by length (never padding thin ones), then packs sections into as few model calls as possible under a token budget. |
-| 5. Generate | *next* | Gemini (free tier) with Groq fallback, returning compact JSON in the PEP Drill format. |
-| 6. Check & store | *next* | Validates every question and caches results by section fingerprint so the same notes are never sent twice. |
+| 5. Generate | `prompt.py`, `providers.py`, `generate.py` | One short fixed exam-style instruction per call plus only the planned sections. Gemini returns JSON in an enforced schema. Calls are paced under the free-tier per-minute limit, retried on rate limits/overloads, and fall back across models (Gemini, then Groq). |
+| 6. Check & cache | `check.py`, `generate.py` | Rejects malformed questions (wrong option count, duplicate options, bad answer index, options like "A and B", stems that mention "the notes", duplicates) and caches each call by a fingerprint of its instruction and text, so re-runs cost nothing. |
 
 ## Exam profiles
 
@@ -45,6 +44,23 @@ model calls the run needs. The plan JSON holds the cleaned section text the
 generation step will send. Token figures are estimates (about 4 characters per
 token); the generation step will report the model's own counts.
 
+Generate questions (prepare + model call + checks):
+
+```bash
+python -m quizengine generate notes/pharmacology_ch4.pdf -n 20 --course PCOL --difficulty mixed
+python -m quizengine generate notes/pharmacology_ch4.pdf -n 20 --course PCOL --dry-run   # show what would be sent
+```
+
+Options: `--difficulty easy|mixed|hard`, `--providers gemini,groq` (order),
+`--model` (Gemini model to try first), `--think N` (Gemini thinking budget,
+0 = off and cheapest), `--rpm 8` (pacing), `--no-cache`. Output goes to
+`<file>.questions.json`; every question carries its source section and pages
+and is marked AI-generated, for review before it joins a shared bank.
+
+API keys: in the Claude Code cloud environment the keys are network secrets
+added automatically for `generativelanguage.googleapis.com` and `api.groq.com`.
+Elsewhere, set `GEMINI_API_KEY` and/or `GROQ_API_KEY`.
+
 In code (this is what the web app's server will call on upload):
 
 ```python
@@ -59,7 +75,7 @@ prepared.to_dict()
 python -m pytest -q
 ```
 
-The tests build a realistic notes PDF (running header and footer, contents
+Tests never call a real model (a fake provider stands in). The tests build a realistic notes PDF (running header and footer, contents
 page, three heading sizes, split words, bullets, a caption, references, a
 scanned page) and check every cleaning and planning rule against it.
 

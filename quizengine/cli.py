@@ -16,6 +16,50 @@ def main(argv: list[str] | None = None) -> int:
     sub = ap.add_subparsers(dest="command", required=True)
 
     p = sub.add_parser("prepare", help="Extract, clean, split and plan questions for a PDF or notes file.")
+    _common(p)
+    p.add_argument("-o", "--out", help="Where to write the plan JSON (default: <file>.plan.json).")
+    p.add_argument("--show-text", action="store_true", help="Print the cleaned text that would be sent.")
+
+    g = sub.add_parser("generate", help="Prepare a file, then generate and check questions with the AI model.")
+    _common(g)
+    g.add_argument("--difficulty", choices=["easy", "mixed", "hard"], default="mixed")
+    g.add_argument("--providers", default="gemini,groq", help="Order to try providers (comma separated).")
+    g.add_argument("--model", action="append", help="Gemini model(s) to try first (repeatable).")
+    g.add_argument("--think", type=int, default=0, help="Gemini thinking budget in tokens (0 = off, cheapest).")
+    g.add_argument("--rpm", type=float, default=8, help="Max model calls per minute (free tiers are ~10).")
+    g.add_argument("--no-cache", action="store_true", help="Ignore cached results and call the model again.")
+    g.add_argument("--cache-dir", default=".quizcache")
+    g.add_argument("--dry-run", action="store_true", help="Show the instruction and first message; call nothing.")
+    g.add_argument("-o", "--out", help="Where to write questions (default: <file>.questions.json).")
+
+    sub.add_parser("profiles", help="List exam profiles.")
+    args = ap.parse_args(argv)
+
+    if args.command == "profiles":
+        for key in profiles.available():
+            print(f"{key:12} {profiles.load(key).name}")
+        return 0
+
+    try:
+        prepared = _prepare(args)
+    except (ValueError, FileNotFoundError) as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
+    print(report(prepared))
+
+    if args.command == "generate":
+        return _generate(args, prepared)
+
+    if args.show_text:
+        for s in prepared.plan.sections:
+            print(f"\n=== {s.title}  ({s.questions} questions) ===\n{s.text}")
+    out = Path(args.out) if args.out else Path(args.file).with_suffix(".plan.json")
+    out.write_text(json.dumps(prepared.to_dict(), ensure_ascii=False, indent=1), encoding="utf-8")
+    print(f"\nPlan written to {out}")
+    return 0
+
+
+def _common(p: argparse.ArgumentParser) -> None:
     p.add_argument("file")
     p.add_argument("-n", "--questions", type=int, default=20)
     p.add_argument("--profile", default="pep", help="Exam profile: pep, undergrad, or your own JSON profile.")
@@ -29,36 +73,41 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--keep-all", action="store_true", help="Do not skip references, contents, objectives, etc.")
     p.add_argument("--max-input-tokens", type=int, default=6000, help="Input budget per model call.")
     p.add_argument("--max-per-call", type=int, default=10, help="Questions per model call.")
-    p.add_argument("-o", "--out", help="Where to write the plan JSON (default: <file>.plan.json).")
-    p.add_argument("--show-text", action="store_true", help="Print the cleaned text that would be sent.")
 
-    sub.add_parser("profiles", help="List exam profiles.")
-    args = ap.parse_args(argv)
 
-    if args.command == "profiles":
-        for key, path in profiles.available().items():
-            prof = profiles.load(key)
-            print(f"{key:12} {prof.name}")
+def _prepare(args) -> Prepared:
+    prof = profiles.load(args.profile, args.profiles_dir).with_params(
+        level=args.level, programme=args.programme, institution=args.institution)
+    return prepare(args.file, args.questions, prof, args.course,
+                   exclude=None if args.keep_all else DEFAULT_EXCLUDE, extra_exclude=args.exclude,
+                   max_input_tokens=args.max_input_tokens, max_per_call=args.max_per_call)
+
+
+def _generate(args, prepared: Prepared) -> int:
+    from . import prompt
+    from .generate import generate, report as gen_report
+    from .providers import Gemini, Groq
+
+    if not prepared.plan.calls:
+        print("Nothing to generate.")
+        return 1
+    if args.dry_run:
+        sections = [s for s in prepared.plan.sections if s.id in prepared.plan.calls[0].section_ids]
+        labels = {s.id: f"S{k}" for k, s in enumerate(sections, start=1)}
+        print("\n--- instruction ---\n" + prompt.instruction(prepared.profile, prepared.course, args.difficulty))
+        print("\n--- first message ---\n" + prompt.message(sections, labels))
         return 0
-
-    try:
-        prof = profiles.load(args.profile, args.profiles_dir).with_params(
-            level=args.level, programme=args.programme, institution=args.institution)
-        prepared = prepare(args.file, args.questions, prof, args.course,
-                           exclude=None if args.keep_all else DEFAULT_EXCLUDE, extra_exclude=args.exclude,
-                           max_input_tokens=args.max_input_tokens, max_per_call=args.max_per_call)
-    except (ValueError, FileNotFoundError) as e:
-        print(f"error: {e}", file=sys.stderr)
-        return 2
-
-    print(report(prepared))
-    if args.show_text:
-        for s in prepared.plan.sections:
-            print(f"\n=== {s.title}  ({s.questions} questions) ===\n{s.text}")
-    out = Path(args.out) if args.out else Path(args.file).with_suffix(".plan.json")
-    out.write_text(json.dumps(prepared.to_dict(), ensure_ascii=False, indent=1), encoding="utf-8")
-    print(f"\nPlan written to {out}")
-    return 0
+    available = {"gemini": lambda: Gemini(args.model, args.think), "groq": lambda: Groq()}
+    providers = [available[name.strip()]() for name in args.providers.split(",") if name.strip() in available]
+    print(f"\nGenerating ({args.difficulty})…")
+    gen = generate(prepared, providers, args.difficulty, args.cache_dir, args.rpm, not args.no_cache)
+    print(gen_report(gen, prepared.plan.planned))
+    out = Path(args.out) if args.out else Path(args.file).with_suffix(".questions.json")
+    out.write_text(json.dumps({"source": Path(prepared.source).name, "profile": prepared.profile.key,
+                               "course": prepared.course, "difficulty": args.difficulty,
+                               "questions": gen.questions}, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(f"Questions written to {out}")
+    return 0 if gen.questions else 1
 
 
 def report(pr: Prepared) -> str:
