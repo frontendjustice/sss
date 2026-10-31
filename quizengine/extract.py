@@ -31,7 +31,8 @@ class Page:
     height: float
     lines: list[Line] = field(default_factory=list)
     raw_text: str = ""
-    scanned: bool = False
+    scanned: bool = False       # no text layer: needs reading as an image
+    transcribed: bool = False   # text came from reading the page image
 
 
 @dataclass
@@ -47,6 +48,10 @@ class Document:
     def scanned_pages(self) -> list[int]:
         return [p.number for p in self.pages if p.scanned]
 
+    @property
+    def transcribed_pages(self) -> list[int]:
+        return [p.number for p in self.pages if p.transcribed]
+
 
 def extract(path: str | Path) -> Document:
     path = Path(path)
@@ -55,7 +60,9 @@ def extract(path: str | Path) -> Document:
         return _extract_pdf(path)
     if suffix in (".txt", ".md", ".markdown"):
         return _extract_text(path)
-    raise ValueError(f"Unsupported file type: {suffix} (use .pdf, .txt or .md)")
+    if suffix == ".docx":
+        return _extract_docx(path)
+    raise ValueError(f"Unsupported file type: {suffix} (use .pdf, .docx, .txt or .md)")
 
 
 def _extract_pdf(path: Path) -> Document:
@@ -89,21 +96,76 @@ def _extract_pdf(path: Path) -> Document:
 _MD_HEADING = re.compile(r"^(#{1,6})\s+(.*)$")
 
 
+def markdown_lines(text: str, page: int = 1) -> list[Line]:
+    """Markdown/plain text as lines. Headings get sizes by level; each line and bullet stands alone
+    (a blank line is kept as an empty Line so cleaning sees the paragraph break)."""
+    lines: list[Line] = []
+    for y, raw in enumerate(text.splitlines(), start=1):
+        s = raw.strip()
+        if not s:
+            lines.append(Line("", 11.0, False, page, y, y, 0.0))
+            continue
+        m = _MD_HEADING.match(s)
+        if m:
+            level = len(m.group(1))
+            lines.append(Line(m.group(2).strip().strip("*").strip(), 11.0 + (7 - level) * 2, True, page, y, y, 0.0))
+        else:
+            if s.startswith(("- ", "* ", "+ ")):
+                lines.append(Line("", 11.0, False, page, y, y, 0.0))  # every bullet is its own point
+            lines.append(Line(raw.rstrip(), 11.0, False, page, y, y, 0.0))
+    return lines
+
+
 def _extract_text(path: Path) -> Document:
     """Plain text / Markdown notes become one long 'page'. Markdown headings get heading sizes."""
     text = path.read_text(encoding="utf-8", errors="replace")
-    page = Page(number=1, height=0.0, raw_text=text)
-    y = 0.0
-    for raw in text.splitlines():
+    return Document(str(path), [Page(number=1, height=0.0, raw_text=text, lines=markdown_lines(text))])
+
+
+def _extract_docx(path: Path) -> Document:
+    """Word documents: heading styles (Title, Heading 1-6) become headings, a paragraph whose text is
+    all bold reads as a sub-heading, and tables become one 'cell | cell' line per row."""
+    import docx  # python-docx
+    from docx.table import Table
+    from docx.text.paragraph import Paragraph
+
+    d = docx.Document(str(path))
+    lines: list[Line] = []
+    raw: list[str] = []
+    y = 0
+
+    def add(text: str, size: float = 11.0, bold: bool = False):
+        nonlocal y
         y += 1
-        if not raw.strip():
-            # A blank line is a paragraph break; mark it with an empty line so cleaning can see it.
-            page.lines.append(Line("", 11.0, False, 1, y, y, 0.0))
-            continue
-        m = _MD_HEADING.match(raw.strip())
-        if m:
-            level = len(m.group(1))
-            page.lines.append(Line(m.group(2).strip(), 11.0 + (7 - level) * 2, True, 1, y, y, 0.0))
-        else:
-            page.lines.append(Line(raw.rstrip(), 11.0, False, 1, y, y, 0.0))
-    return Document(str(path), [page])
+        lines.append(Line(text, size, bold, 1, y, y, 0.0))
+
+    for child in d.element.body.iterchildren():
+        tag = child.tag.rsplit("}", 1)[-1]
+        if tag == "p":
+            p = Paragraph(child, d)
+            text = p.text.strip()
+            raw.append(p.text)
+            add("")  # Word paragraphs are separate blocks
+            if not text:
+                continue
+            style = (p.style.name if p.style is not None else "").lower()
+            runs = [r for r in p.runs if r.text.strip()]
+            bold = bool(runs) and all(r.bold or (r.style is not None and "strong" in r.style.name.lower()) for r in runs)
+            if style == "title":
+                add(text, 23.0, True)
+            elif style.startswith("heading") and style[-1:].isdigit():
+                add(text, 11.0 + (7 - int(style[-1])) * 2, True)
+            else:
+                add(text, 11.0, bold)
+        elif tag == "tbl":
+            for row in Table(child, d).rows:
+                cells: list[str] = []
+                for c in row.cells:
+                    t = " / ".join(x.strip() for x in c.text.splitlines() if x.strip())
+                    if t and (not cells or cells[-1] != t):  # merged cells repeat their text
+                        cells.append(t)
+                if cells:
+                    raw.append(" | ".join(cells))
+                    add("")
+                    add(" | ".join(cells))
+    return Document(str(path), [Page(number=1, height=0.0, raw_text="\n".join(raw), lines=lines)])

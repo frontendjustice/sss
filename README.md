@@ -6,7 +6,8 @@ your machine; only step 5 calls an AI model.
 
 | Step | Module | What it does |
 |---|---|---|
-| 1. Extract | `extract.py` | Reads PDFs (PyMuPDF) and `.txt`/`.md` notes line by line with font size, weight and position. Flags image-only (scanned) pages. |
+| 1. Extract | `extract.py` | Reads PDFs (PyMuPDF), Word `.docx` (headings, bold lines, tables) and `.txt`/`.md` notes, keeping font size, weight and position. Flags image-only (scanned) pages. |
+| 1b. Read scans | `ocr.py` | Sends scanned/handwritten pages to Gemini as small greyscale images, 4 per call, and caches each page's transcription by image fingerprint, so photos are paid for once (about 530 image tokens a page at the default medium detail). |
 | 2. Clean | `clean.py` | Removes running headers/footers, page numbers, contents leaders, bare figure captions and repeated paragraphs; re-joins words split across lines; normalises bullets and whitespace; detects headings and their levels. |
 | 3. Split | `split.py` | Cuts the text into topic sections that keep their heading path ("Chapter › Topic"). Merges tiny sections, splits long ones, skips references, contents, objectives and exercises. |
 | 4. Plan | `plan.py` | Shares the requested number of questions across sections by length (never padding thin ones), then packs sections into as few model calls as possible under a token budget. |
@@ -27,7 +28,7 @@ Add a new exam by adding a JSON file (or point `--profiles-dir` at your own fold
 ## Use
 
 ```bash
-pip install pymupdf            # plus pytest for the tests
+pip install pymupdf python-docx    # plus pytest for the tests
 python -m quizengine profiles
 python -m quizengine prepare notes/pharmacology_ch4.pdf -n 20 --course PCOL
 python -m quizengine prepare notes/pcl401.pdf -n 15 --profile undergrad \

@@ -73,14 +73,24 @@ def _common(p: argparse.ArgumentParser) -> None:
     p.add_argument("--keep-all", action="store_true", help="Do not skip references, contents, objectives, etc.")
     p.add_argument("--max-input-tokens", type=int, default=6000, help="Input budget per model call.")
     p.add_argument("--max-per-call", type=int, default=10, help="Questions per model call.")
+    p.add_argument("--ocr", choices=["auto", "off"], default=None,
+                   help="Read scanned/handwritten pages with Gemini (default: on for generate, off for prepare).")
+    p.add_argument("--ocr-resolution", choices=["low", "medium", "high"], default="medium",
+                   help="Image detail for scanned pages: medium ≈ 530 tokens/page (default, read handwriting reliably in tests), low ≈ 270.")
 
 
 def _prepare(args) -> Prepared:
     prof = profiles.load(args.profile, args.profiles_dir).with_params(
         level=args.level, programme=args.programme, institution=args.institution)
+    ocr_on = args.ocr == "auto" or (args.ocr is None and args.command == "generate")
+    transcriber = None
+    if ocr_on:
+        from .ocr import transcribe
+        cache_dir = getattr(args, "cache_dir", ".quizcache")
+        transcriber = lambda doc: transcribe(doc, resolution=args.ocr_resolution, cache_dir=cache_dir)
     return prepare(args.file, args.questions, prof, args.course,
                    exclude=None if args.keep_all else DEFAULT_EXCLUDE, extra_exclude=args.exclude,
-                   max_input_tokens=args.max_input_tokens, max_per_call=args.max_per_call)
+                   max_input_tokens=args.max_input_tokens, max_per_call=args.max_per_call, transcriber=transcriber)
 
 
 def _generate(args, prepared: Prepared) -> int:
@@ -114,9 +124,15 @@ def report(pr: Prepared) -> str:
     d = pr.to_dict(include_text=False)
     t = d["tokens"]
     lines = [f"File: {Path(pr.source).name}  ({d['pages']} page{'s' if d['pages'] != 1 else ''})"]
+    if d["ocr"]:
+        o = d["ocr"]
+        lines.append(f"  Read {o['pages']} scanned page(s) as images: {o['cached']} from cache, {o['calls']} call(s),"
+                     f" {o['image_tokens']:,} image tokens, {o['input_tokens']:,} in / {o['output_tokens']:,} out")
+        if o["failed"]:
+            lines.append(f"  ! Could not read page(s): {', '.join(map(str, o['failed']))}")
     if d["scanned_pages"]:
         pages = ", ".join(map(str, d["scanned_pages"]))
-        lines.append(f"  Scanned pages with no text (need image reading): {pages}")
+        lines.append(f"  Scanned pages with no text (add --ocr auto to read them): {pages}")
     lines.append(f"Profile: {pr.profile.name} — {pr.profile.audience_text}"
                  + (f" — course: {pr.course}" if pr.course else ""))
     saved = (1 - t["cleaned"] / t["raw"]) * 100 if t["raw"] else 0

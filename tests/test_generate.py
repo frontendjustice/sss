@@ -89,3 +89,30 @@ def test_instruction_uses_profile():
     assert "200L Pharmacy students at UNILAG" in text and "Course: PCH 201" in text and "application" in text
     with pytest.raises(ValueError):
         instruction(prof, None, "impossible")
+
+
+def test_split_pages_by_marker():
+    from quizengine.ocr import split_pages
+    text = "<<<PAGE 3>>>\n# Title\n- a\n<<<PAGE 4>>>\n- b"
+    assert split_pages(text, [3, 4]) == {3: "# Title\n- a", 4: "- b"}
+    assert split_pages("- only", [7]) == {7: "- only"}
+    assert split_pages("no markers", [1, 2]) == {}
+
+
+def test_docx_headings_bold_and_tables(tmp_path):
+    import docx
+    from quizengine.extract import extract
+    from quizengine.clean import clean
+    d = docx.Document()
+    d.add_heading("Autacoids", 1)
+    d.add_paragraph().add_run("Histamine").bold = True
+    d.add_paragraph("Histamine is released from mast cells and acts on H1 to H4 receptors.")
+    t = d.add_table(rows=2, cols=2)
+    t.cell(0, 0).text, t.cell(0, 1).text = "Drug", "Receptor"
+    t.cell(1, 0).text, t.cell(1, 1).text = "Cetirizine", "H1"
+    path = tmp_path / "n.docx"
+    d.save(path)
+    blocks = clean(extract(path)).blocks
+    heads = [(b.level, b.text) for b in blocks if b.kind == "heading"]
+    assert heads[0][1] == "Autacoids" and heads[1][1] == "Histamine" and heads[0][0] < heads[1][0]
+    assert any(b.text == "Cetirizine | H1" for b in blocks)

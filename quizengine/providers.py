@@ -106,6 +106,26 @@ class Gemini:
                       u.get("candidatesTokenCount", 0), u.get("thoughtsTokenCount", 0), data)
 
 
+def gemini_text(model: str, parts: list[dict], max_output: int, media_resolution: str | None = None,
+                thinking_budget: int = 0) -> Result:
+    """Plain-text answer from Gemini for mixed text/image parts (used for transcribing scans)."""
+    headers = {"x-goog-api-key": os.environ["GEMINI_API_KEY"]} if os.environ.get("GEMINI_API_KEY") else {}
+    config = {"maxOutputTokens": max_output, "temperature": 0.1, "thinkingConfig": {"thinkingBudget": thinking_budget}}
+    if media_resolution:
+        config["mediaResolution"] = media_resolution
+    data = _post(f"{Gemini.BASE}/{model}:generateContent", {"contents": [{"parts": parts}], "generationConfig": config}, headers)
+    cands = data.get("candidates") or []
+    if not cands or not cands[0].get("content", {}).get("parts"):
+        raise ProviderError(f"empty response ({cands[0].get('finishReason') if cands else 'blocked'})")
+    if cands[0].get("finishReason") == "MAX_TOKENS":
+        raise ProviderError("answer cut off at the output limit")
+    text = "".join(p.get("text", "") for p in cands[0]["content"]["parts"] if not p.get("thought"))
+    u = data.get("usageMetadata", {})
+    image_tokens = sum(d.get("tokenCount", 0) for d in u.get("promptTokensDetails", []) if d.get("modality") == "IMAGE")
+    return Result(text, data.get("modelVersion", model), u.get("promptTokenCount", 0),
+                  u.get("candidatesTokenCount", 0), u.get("thoughtsTokenCount", 0), {"image_tokens": image_tokens})
+
+
 class Groq:
     """OpenAI-compatible chat API. JSON mode needs an object, so the array is wrapped in {"questions": [...]}."""
     name = "groq"
@@ -150,20 +170,25 @@ def call_with_fallback(providers: list, system: str, user: str, schema: dict, ma
                        pacer: Pacer, log=print, attempts: int = 3) -> Result:
     """Try each provider's models in order. Rate limits and overloads are retried with backoff;
     bad requests move straight on to the next model."""
+    return retrying([(p.name, m, p) for p in providers for m in p.models],
+                    lambda p, m: p.generate(m, system, user, schema, max_output), pacer, log, attempts)
+
+
+def retrying(targets: list[tuple], request, pacer: Pacer, log=print, attempts: int = 3) -> Result:
+    """targets: (provider name, model, provider) in the order to try; request(provider, model) -> Result."""
     errors = []
-    for provider in providers:
-        for model in provider.models:
-            for attempt in range(attempts):
-                pacer.wait()
-                try:
-                    return provider.generate(model, system, user, schema, max_output)
-                except ProviderError as e:
-                    errors.append(f"{provider.name}/{model}: {e}")
-                    log(f"    {provider.name}/{model} failed: {e}")
-                    if e.fatal:
-                        break
-                    if attempt < attempts - 1:
-                        wait = min(e.retry_after or 5 * 2 ** attempt, 90)
-                        log(f"    retrying in {wait:.0f}s")
-                        time.sleep(wait)
+    for name, model, provider in targets:
+        for attempt in range(attempts):
+            pacer.wait()
+            try:
+                return request(provider, model)
+            except ProviderError as e:
+                errors.append(f"{name}/{model}: {e}")
+                log(f"    {name}/{model} failed: {e}")
+                if e.fatal:
+                    break
+                if attempt < attempts - 1:
+                    wait = min(e.retry_after or 5 * 2 ** attempt, 90)
+                    log(f"    retrying in {wait:.0f}s")
+                    time.sleep(wait)
     raise ProviderError("all models failed:\n  " + "\n  ".join(errors[-6:]))

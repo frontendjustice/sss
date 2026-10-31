@@ -25,6 +25,7 @@ class Prepared:
     cleaned: CleanDoc
     split: SplitResult
     plan: Plan
+    ocr: object = None  # OcrStats when scanned pages were transcribed
 
     @property
     def raw_tokens(self) -> int:
@@ -43,6 +44,8 @@ class Prepared:
             "course": self.course,
             "pages": len(self.doc.pages),
             "scanned_pages": self.doc.scanned_pages,
+            "transcribed_pages": self.doc.transcribed_pages,
+            "ocr": self.ocr.__dict__ if self.ocr else None,
             "tokens": {"raw": self.raw_tokens, "cleaned": self.clean_tokens,
                        "sent_source": p.source_tokens, "est_input_total": p.input_tokens,
                        "est_output_total": p.output_tokens},
@@ -61,10 +64,12 @@ class Prepared:
 
 def prepare(path: str | Path, questions: int, profile: Profile, course: str | None = None,
             exclude: str | None = DEFAULT_EXCLUDE, extra_exclude: list[str] | None = None,
-            max_input_tokens: int = 6000, max_per_call: int = 10) -> Prepared:
+            max_input_tokens: int = 6000, max_per_call: int = 10, transcriber=None) -> Prepared:
+    """transcriber: optional callable(doc) -> stats that fills in scanned pages (see ocr.transcribe)."""
     course_name = profile.course_name(course)
     profile.render(profile.audience)  # fail early if a placeholder has no value
     doc = extract(path)
+    ocr = transcriber(doc) if transcriber and doc.scanned_pages else None
     cleaned = clean(doc)
     pattern = exclude
     if extra_exclude:
@@ -72,4 +77,4 @@ def prepare(path: str | Path, questions: int, profile: Profile, course: str | No
         pattern = f"(?:{pattern})|^\\s*(?:{extra})" if pattern else f"^\\s*(?:{extra})"
     result = split(cleaned, exclude=pattern, start_title=Path(path).stem.replace("_", " "))
     plan = make_plan(result.sections, questions, max_input_tokens, max_per_call)
-    return Prepared(str(path), profile, course_name, doc, cleaned, result, plan)
+    return Prepared(str(path), profile, course_name, doc, cleaned, result, plan, ocr)
