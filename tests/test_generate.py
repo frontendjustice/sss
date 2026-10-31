@@ -116,3 +116,36 @@ def test_docx_headings_bold_and_tables(tmp_path):
     heads = [(b.level, b.text) for b in blocks if b.kind == "heading"]
     assert heads[0][1] == "Autacoids" and heads[1][1] == "Histamine" and heads[0][0] < heads[1][0]
     assert any(b.text == "Cetirizine | H1" for b in blocks)
+
+
+tesseract_missing = pytest.mark.skipif(
+    __import__("shutil").which("tesseract") is None, reason="Tesseract is not installed")
+
+
+@tesseract_missing
+def test_printed_scan_is_read_by_tesseract_without_gemini(tmp_path):
+    import pymupdf
+    from quizengine.clean import clean
+    from quizengine.extract import extract
+    from quizengine.ocr import transcribe
+    src = pymupdf.open(build_notes_pdf(tmp_path / "typed.pdf"))
+    scan = pymupdf.open()
+    for page in src.pages(1, 3):  # flatten printed pages into images, like a photocopy
+        pix = page.get_pixmap(dpi=200, colorspace=pymupdf.csGRAY)
+        scan.new_page(width=595, height=842).insert_image(pymupdf.Rect(0, 0, 595, 842), pixmap=pix)
+    scan.save(tmp_path / "scan.pdf")
+    doc = extract(tmp_path / "scan.pdf")
+    assert doc.scanned_pages == [1, 2]
+    stats = transcribe(doc, models=["no-such-model"], cache_dir=tmp_path / "c", log=lambda *a: None)
+    assert stats.tesseract_pages == 2 and stats.gemini_pages == 0 and stats.calls == 0
+    cleaned = clean(doc)
+    heads = [b.text for b in cleaned.blocks if b.kind == "heading"]
+    assert "1.1 Beta blockers" in heads and "1.2 ACE inhibitors" in heads
+    assert "PHA 301" not in cleaned.text  # running header still removed on scanned pages
+
+
+def test_tesseract_rule_sends_handwriting_to_gemini():
+    from quizengine.ocr import tesseract_ok
+    assert tesseract_ok({"words": 387, "mean_conf": 95.4, "share_confident": 0.99})
+    assert not tesseract_ok({"words": 0, "mean_conf": 0.0, "share_confident": 0.0})       # handwriting
+    assert not tesseract_ok({"words": 120, "mean_conf": 61.0, "share_confident": 0.4})    # poor photo

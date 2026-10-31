@@ -75,6 +75,8 @@ def _common(p: argparse.ArgumentParser) -> None:
     p.add_argument("--max-per-call", type=int, default=10, help="Questions per model call.")
     p.add_argument("--ocr", choices=["auto", "off"], default=None,
                    help="Read scanned/handwritten pages with Gemini (default: on for generate, off for prepare).")
+    p.add_argument("--no-tesseract", action="store_true",
+                   help="Skip the free Tesseract pass and send every scanned page to Gemini.")
     p.add_argument("--ocr-resolution", choices=["low", "medium", "high"], default="medium",
                    help="Image detail for scanned pages: medium ≈ 530 tokens/page (default, read handwriting reliably in tests), low ≈ 270.")
 
@@ -87,7 +89,8 @@ def _prepare(args) -> Prepared:
     if ocr_on:
         from .ocr import transcribe
         cache_dir = getattr(args, "cache_dir", ".quizcache")
-        transcriber = lambda doc: transcribe(doc, resolution=args.ocr_resolution, cache_dir=cache_dir)
+        transcriber = lambda doc: transcribe(doc, resolution=args.ocr_resolution, cache_dir=cache_dir,
+                                             use_tesseract=not args.no_tesseract)
     return prepare(args.file, args.questions, prof, args.course,
                    exclude=None if args.keep_all else DEFAULT_EXCLUDE, extra_exclude=args.exclude,
                    max_input_tokens=args.max_input_tokens, max_per_call=args.max_per_call, transcriber=transcriber)
@@ -126,8 +129,11 @@ def report(pr: Prepared) -> str:
     lines = [f"File: {Path(pr.source).name}  ({d['pages']} page{'s' if d['pages'] != 1 else ''})"]
     if d["ocr"]:
         o = d["ocr"]
-        lines.append(f"  Read {o['pages']} scanned page(s) as images: {o['cached']} from cache, {o['calls']} call(s),"
-                     f" {o['image_tokens']:,} image tokens, {o['input_tokens']:,} in / {o['output_tokens']:,} out")
+        lines.append(f"  Read {o['pages']} scanned page(s): {o['tesseract_pages']} by Tesseract (free),"
+                     f" {o['gemini_pages']} by Gemini, {o['cached']} from cache")
+        if o["calls"]:
+            lines.append(f"    Gemini: {o['calls']} call(s), {o['image_tokens']:,} image tokens,"
+                         f" {o['input_tokens']:,} in / {o['output_tokens']:,} out")
         if o["failed"]:
             lines.append(f"  ! Could not read page(s): {', '.join(map(str, o['failed']))}")
     if d["scanned_pages"]:

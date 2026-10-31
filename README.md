@@ -7,7 +7,7 @@ your machine; only step 5 calls an AI model.
 | Step | Module | What it does |
 |---|---|---|
 | 1. Extract | `extract.py` | Reads PDFs (PyMuPDF), Word `.docx` (headings, bold lines, tables) and `.txt`/`.md` notes, keeping font size, weight and position. Flags image-only (scanned) pages. |
-| 1b. Read scans | `ocr.py` | Sends scanned/handwritten pages to Gemini as small greyscale images, 4 per call, and caches each page's transcription by image fingerprint, so photos are paid for once (about 530 image tokens a page at the default medium detail). |
+| 1b. Read scans | `ocr.py` | Scanned pages go to **Tesseract first** (free, on the server, no tokens). Its text is kept when the page reads like clean print (≥25 words, mean confidence ≥80%, ≥75% of words at ≥80%), with line positions and sizes so headers, footers and headings are still found. Pages Tesseract can't read (handwriting, poor photos) go to Gemini as small greyscale images, 4 per call, cached per page image so they are paid for once (about 530 image tokens a page at the default medium detail). |
 | 2. Clean | `clean.py` | Removes running headers/footers, page numbers, contents leaders, bare figure captions and repeated paragraphs; re-joins words split across lines; normalises bullets and whitespace; detects headings and their levels. |
 | 3. Split | `split.py` | Cuts the text into topic sections that keep their heading path ("Chapter › Topic"). Merges tiny sections, splits long ones, skips references, contents, objectives and exercises. |
 | 4. Plan | `plan.py` | Shares the requested number of questions across sections by length (never padding thin ones), then packs sections into as few model calls as possible under a token budget. |
@@ -29,11 +29,16 @@ Add a new exam by adding a JSON file (or point `--profiles-dir` at your own fold
 
 ```bash
 pip install pymupdf python-docx    # plus pytest for the tests
+apt-get install tesseract-ocr      # free OCR for printed scans (optional; without it scans go to Gemini)
 python -m quizengine profiles
 python -m quizengine prepare notes/pharmacology_ch4.pdf -n 20 --course PCOL
 python -m quizengine prepare notes/pcl401.pdf -n 15 --profile undergrad \
     --level 400L --programme Pharmacy --institution UNIBEN --course "PCL 401 Chemotherapy"
 ```
+
+Scanned pages: `--ocr auto` reads them during `prepare` (it is automatic for
+`generate`), `--no-tesseract` sends every scan to Gemini, and
+`--ocr-resolution low|medium|high` sets the image detail for Gemini.
 
 Useful options: `--exclude 'introduction'` (skip more headings), `--keep-all`
 (skip nothing), `--max-input-tokens 6000` and `--max-per-call 10` (call sizing),

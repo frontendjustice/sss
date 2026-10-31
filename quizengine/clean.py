@@ -146,7 +146,7 @@ def _in_margin(line: Line) -> bool:
 
 def _running_headers_footers(doc: Document) -> set[str]:
     pdf_pages = [p for p in doc.pages if p.height]
-    if len(pdf_pages) < 3:
+    if len(pdf_pages) < 2:
         return set()
     seen: Counter = Counter()
     for page in pdf_pages:
