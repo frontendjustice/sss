@@ -32,7 +32,8 @@ def check(items: list, valid_sections: set[str], options: int, seen: set[str] | 
             continue
         seen.add(_norm(it["q"]))
         ok.append({"s": it["s"], "q": it["q"].strip(), "o": [o.strip() for o in it["o"]],
-                   "a": it["a"], "e": it["e"].strip(), "t": str(it.get("t", "")).strip()})
+                   "a": it["a"], "e": it["e"].strip(), "t": str(it.get("t", "")).strip(),
+                   "f": str(it.get("f") or "").strip()})
     return ok, rejected
 
 

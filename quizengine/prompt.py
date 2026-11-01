@@ -10,7 +10,7 @@ from __future__ import annotations
 from .profiles import Profile
 from .split import Section
 
-PROMPT_VERSION = "1"  # bump when wording changes, so cached results are not reused
+PROMPT_VERSION = "2"  # bump when wording changes, so cached results are not reused
 
 DIFFICULTY = {
     "easy": "mostly direct recall of key facts",
@@ -19,7 +19,7 @@ DIFFICULTY = {
 }
 
 
-def instruction(profile: Profile, course: str | None, difficulty: str = "mixed") -> str:
+def instruction(profile: Profile, course: str | None, difficulty: str = "mixed", fact_check: bool = True) -> str:
     if difficulty not in DIFFICULTY:
         raise ValueError(f"difficulty must be one of: {', '.join(DIFFICULTY)}")
     n = profile.options
@@ -38,8 +38,14 @@ def instruction(profile: Profile, course: str | None, difficulty: str = "mixed")
         "- Explanation: 1-2 sentences giving the key fact that makes the answer correct.",
         f"- Difficulty: {DIFFICULTY[difficulty]}.",
         "Output a JSON array. Each item: s = section id, q = question, o = options,"
-        " a = 0-based index of the correct option, e = explanation, t = question type.",
+        " a = 0-based index of the correct option, e = explanation, t = question type"
+        + (", f = fact check." if fact_check else "."),
     ]
+    if fact_check:
+        lines.append(
+            "- f: the answer must still follow the notes, but if it (or the question) conflicts with standard"
+            " pharmacy/medical references, or another option is equally correct by those references, write a"
+            " short note (max 25 words) giving the standard view. Otherwise f = \"\".")
     examples = getattr(profile, "examples", None) or []
     if examples:
         import json
@@ -52,6 +58,16 @@ def message(sections: list[Section], labels: dict[str, str]) -> str:
     notes = "\n\n".join(f"[{labels[s.id]}] {s.title}\n{s.text}" for s in sections)
     total = sum(s.questions for s in sections)
     return f"Write {total} questions, per section:\n{quota}\n\nNOTES\n{notes}"
+
+
+def response_schema(fact_check: bool = True) -> dict:
+    if not fact_check:
+        return RESPONSE_SCHEMA
+    item = dict(RESPONSE_SCHEMA["items"])
+    item["properties"] = {**item["properties"], "f": {"type": "STRING"}}
+    item["required"] = item["required"] + ["f"]
+    item["propertyOrdering"] = item["propertyOrdering"] + ["f"]
+    return {"type": "ARRAY", "items": item}
 
 
 RESPONSE_SCHEMA = {

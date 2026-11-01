@@ -43,8 +43,9 @@ class Generated:
 
 
 def generate(pr: Prepared, providers: list, difficulty: str = "mixed", cache_dir: str | Path = ".quizcache",
-             per_minute: float = 8, use_cache: bool = True, log=print) -> Generated:
-    system = prompt.instruction(pr.profile, pr.course, difficulty)
+             per_minute: float = 8, use_cache: bool = True, log=print, fact_check: bool = True) -> Generated:
+    system = prompt.instruction(pr.profile, pr.course, difficulty, fact_check)
+    schema = prompt.response_schema(fact_check)
     by_id = {s.id: s for s in pr.plan.sections}
     cache = Path(cache_dir)
     cache.mkdir(parents=True, exist_ok=True)
@@ -67,7 +68,7 @@ def generate(pr: Prepared, providers: list, difficulty: str = "mixed", cache_dir
         else:
             log(f"  call {n}/{len(pr.plan.calls)}: {call.questions} questions from {len(sections)} section(s)…")
             try:
-                res = call_with_fallback(providers, system, user, prompt.RESPONSE_SCHEMA,
+                res = call_with_fallback(providers, system, user, schema,
                                          call.questions * OUTPUT_TOKENS_PER_QUESTION + 256, pacer, log=log)
             except ProviderError as e:
                 usage.error = str(e)
@@ -88,6 +89,7 @@ def generate(pr: Prepared, providers: list, difficulty: str = "mixed", cache_dir
             out.questions.append({
                 "course": pr.course, "q": q["q"], "o": q["o"], "a": q["a"], "e": q["e"], "type": q["t"],
                 "source": {"file": Path(pr.source).name, "section": s.title, "pages": [s.page_start, s.page_end]},
+                "flag": _meaningful(q["f"]),
                 "ai": {"model": usage.model, "difficulty": difficulty, "profile": pr.profile.key},
             })
         usage.accepted = len(good)
@@ -95,11 +97,23 @@ def generate(pr: Prepared, providers: list, difficulty: str = "mixed", cache_dir
     return out
 
 
+def _meaningful(note: str) -> str | None:
+    """Models sometimes fill the fact-check field with 'none'/'consistent' instead of leaving it empty."""
+    n = note.strip().strip(".").lower()
+    if not n or n in {"none", "n/a", "na", "no conflict", "consistent", "correct", "no", "ok"} or n.startswith(
+            ("no conflict", "consistent with standard", "this is consistent", "the answer is consistent")):
+        return None
+    return note.strip()
+
+
 def report(gen: Generated, requested: int) -> str:
     t = gen.tokens
     lines = [f"\nAccepted {len(gen.questions)} of {requested} questions."]
     if gen.rejected:
         lines.append("Rejected by checks: " + ", ".join(f"{k} {v}" for k, v in gen.rejected.most_common()))
+    flagged = [q for q in gen.questions if q.get("flag")]
+    if flagged:
+        lines.append(f"Fact-check: {len(flagged)} question(s) flagged for review (answer may conflict with standard references).")
     share = all_none_share(gen.questions)
     if share > 0.1:
         lines.append(f"Note: {share:.0%} of questions use All/None of the above.")

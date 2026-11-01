@@ -149,3 +149,20 @@ def test_tesseract_rule_sends_handwriting_to_gemini():
     assert tesseract_ok({"words": 387, "mean_conf": 95.4, "share_confident": 0.99})
     assert not tesseract_ok({"words": 0, "mean_conf": 0.0, "share_confident": 0.0})       # handwriting
     assert not tesseract_ok({"words": 120, "mean_conf": 61.0, "share_confident": 0.4})    # poor photo
+
+
+def test_fact_check_flag_kept_and_blank_notes_dropped(prepared, tmp_path):
+    from quizengine.generate import _meaningful
+
+    class Flagging(FakeProvider):
+        def generate(self, model, system, user, schema, max_output):
+            res = super().generate(model, system, user, schema, max_output)
+            assert "f" in schema["items"]["properties"] and "f = fact check" in system
+            for i, item in enumerate(res.items):
+                item["f"] = "Standard texts say X, not Y." if i == 0 else ("None" if i == 1 else "")
+            return res
+
+    gen = generate(prepared, [Flagging()], cache_dir=tmp_path, per_minute=0, log=lambda *a: None)
+    flags = [q["flag"] for q in gen.questions]
+    assert flags[0] == "Standard texts say X, not Y." and flags[1] is None and flags[2] is None
+    assert _meaningful("No conflict.") is None and _meaningful("consistent with standard references") is None

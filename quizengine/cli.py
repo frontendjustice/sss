@@ -28,6 +28,8 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--think", type=int, default=0, help="Gemini thinking budget in tokens (0 = off, cheapest).")
     g.add_argument("--rpm", type=float, default=8, help="Max model calls per minute (free tiers are ~10).")
     g.add_argument("--no-cache", action="store_true", help="Ignore cached results and call the model again.")
+    g.add_argument("--no-fact-check", action="store_true",
+                   help="Do not ask the model to flag answers that conflict with standard references.")
     g.add_argument("--cache-dir", default=".quizcache")
     g.add_argument("--dry-run", action="store_true", help="Show the instruction and first message; call nothing.")
     g.add_argument("-o", "--out", help="Where to write questions (default: <file>.questions.json).")
@@ -107,13 +109,15 @@ def _generate(args, prepared: Prepared) -> int:
     if args.dry_run:
         sections = [s for s in prepared.plan.sections if s.id in prepared.plan.calls[0].section_ids]
         labels = {s.id: f"S{k}" for k, s in enumerate(sections, start=1)}
-        print("\n--- instruction ---\n" + prompt.instruction(prepared.profile, prepared.course, args.difficulty))
+        print("\n--- instruction ---\n" + prompt.instruction(prepared.profile, prepared.course, args.difficulty,
+                                                         not args.no_fact_check))
         print("\n--- first message ---\n" + prompt.message(sections, labels))
         return 0
     available = {"gemini": lambda: Gemini(args.model, args.think), "groq": lambda: Groq()}
     providers = [available[name.strip()]() for name in args.providers.split(",") if name.strip() in available]
     print(f"\nGenerating ({args.difficulty})…")
-    gen = generate(prepared, providers, args.difficulty, args.cache_dir, args.rpm, not args.no_cache)
+    gen = generate(prepared, providers, args.difficulty, args.cache_dir, args.rpm, not args.no_cache,
+                   fact_check=not args.no_fact_check)
     print(gen_report(gen, prepared.plan.planned))
     out = Path(args.out) if args.out else Path(args.file).with_suffix(".questions.json")
     out.write_text(json.dumps({"source": Path(prepared.source).name, "profile": prepared.profile.key,
