@@ -12,7 +12,8 @@ from dataclasses import dataclass, field
 
 from .split import Section
 
-WORDS_PER_QUESTION = 60       # at most one question per ~60 words of source text
+WORDS_PER_QUESTION = 35       # normal density: about one question per ~35 words of notes
+STRETCH_WORDS_PER_QUESTION = 15  # when more are requested: facts get tested from more than one angle
 MAX_PER_SECTION = 25
 INSTRUCTION_TOKENS = 700      # fixed instruction + 2-3 style examples, sent once per call
 OUTPUT_TOKENS_PER_QUESTION = 110
@@ -47,15 +48,15 @@ class Plan:
         return sum(s.tokens for s in self.sections)
 
 
-def capacity(s: Section) -> int:
-    return min(MAX_PER_SECTION, s.words // WORDS_PER_QUESTION)
+def capacity(s: Section, words_per_question: int = WORDS_PER_QUESTION) -> int:
+    return min(MAX_PER_SECTION, s.words // words_per_question)
 
 
-def allocate(sections: list[Section], n: int) -> int:
+def allocate(sections: list[Section], n: int, words_per_question: int = WORDS_PER_QUESTION) -> int:
     """Share n questions across sections by length (largest-remainder method). Returns the number placed."""
     for s in sections:
         s.questions = 0
-    room = {s.id: capacity(s) for s in sections}
+    room = {s.id: capacity(s, words_per_question) for s in sections}
     remaining = min(n, sum(room.values()))
     placed = 0
     while remaining > 0:
@@ -87,11 +88,17 @@ def allocate(sections: list[Section], n: int) -> int:
 
 def make_plan(sections: list[Section], n: int, max_input_tokens: int = 6000,
               max_per_call: int = 10) -> Plan:
-    placed = allocate(sections, n)
-    used = [s for s in sections if s.questions > 0]
     warnings: list[str] = []
+    placed = allocate(sections, n)
     if placed < n:
-        warnings.append(f"Only enough material for about {placed} good questions; asked for {n}.")
+        placed = allocate(sections, n, STRETCH_WORDS_PER_QUESTION)
+        if placed > sum(capacity(s) for s in sections):
+            warnings.append("These notes are short for this many questions, so some facts will be tested"
+                            " from more than one angle.")
+    if placed < n:
+        warnings.append(f"The notes only support about {placed} questions without inventing facts;"
+                        f" asked for {n}. Add more notes for a longer quiz.")
+    used = [s for s in sections if s.questions > 0]
 
     calls: list[Call] = []
     batch: list[Section] = []

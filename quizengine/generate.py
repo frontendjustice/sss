@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections import Counter
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from . import prompt
@@ -53,28 +53,29 @@ def generate(pr: Prepared, providers: list, difficulty: str = "mixed", cache_dir
     seen: set[str] = set()
     out = Generated([], [])
 
-    for n, call in enumerate(pr.plan.calls, start=1):
-        sections = [by_id[i] for i in call.section_ids]
+    accepted: dict[str, list[str]] = {s.id: [] for s in pr.plan.sections}
+
+    def run(number: int, label: str, sections: list, avoid: list[str] | None = None) -> None:
         labels = {s.id: f"S{k}" for k, s in enumerate(sections, start=1)}
-        user = prompt.message(sections, labels)
+        asked = sum(s.questions for s in sections)
+        user = prompt.message(sections, labels, avoid)
         key = hashlib.sha256(json.dumps([prompt.PROMPT_VERSION, system, user]).encode()).hexdigest()[:24]
         path = cache / f"{key}.json"
-        usage = CallUsage(n, "", False, call.questions, 0)
-
+        usage = CallUsage(number, "", False, asked, 0)
         if use_cache and path.exists():
             saved = json.loads(path.read_text(encoding="utf-8"))
             items, usage.model, usage.cached = saved["items"], saved["model"], True
-            log(f"  call {n}/{len(pr.plan.calls)}: {call.questions} questions — from cache")
+            log(f"  {label}: {asked} questions — from cache")
         else:
-            log(f"  call {n}/{len(pr.plan.calls)}: {call.questions} questions from {len(sections)} section(s)…")
+            log(f"  {label}: {asked} questions from {len(sections)} section(s)…")
             try:
                 res = call_with_fallback(providers, system, user, schema,
-                                         call.questions * OUTPUT_TOKENS_PER_QUESTION + 256, pacer, log=log)
+                                         asked * OUTPUT_TOKENS_PER_QUESTION + 256, pacer, log=log)
             except ProviderError as e:
                 usage.error = str(e)
                 out.calls.append(usage)
                 log(f"    gave up on this call: {e}")
-                continue
+                return
             items = res.items
             usage.model = res.model
             usage.input_tokens, usage.output_tokens, usage.thinking_tokens = (
@@ -84,16 +85,34 @@ def generate(pr: Prepared, providers: list, difficulty: str = "mixed", cache_dir
         good, bad = check(items, set(labels.values()), pr.profile.options, seen)
         out.rejected.update(bad)
         back = {v: k for k, v in labels.items()}
+        taken = 0
         for q in good:
             s = by_id[back[q["s"]]]
+            if len(accepted[s.id]) >= s.questions + 2:
+                continue  # never let one section crowd out the others
+            accepted[s.id].append(q["q"])
+            taken += 1
             out.questions.append({
                 "course": pr.course, "q": q["q"], "o": q["o"], "a": q["a"], "e": q["e"], "type": q["t"],
                 "source": {"file": Path(pr.source).name, "section": s.title, "pages": [s.page_start, s.page_end]},
                 "flag": _meaningful(q["f"]),
                 "ai": {"model": usage.model, "difficulty": difficulty, "profile": pr.profile.key},
             })
-        usage.accepted = len(good)
+        usage.accepted = taken
         out.calls.append(usage)
+
+    total = len(pr.plan.calls)
+    for n, call in enumerate(pr.plan.calls, start=1):
+        run(n, f"call {n}/{total}", [by_id[i] for i in call.section_ids])
+
+    # One top-up round: ask again, only for the sections that came back short.
+    short = [replace(s, questions=s.questions - len(accepted[s.id]))
+             for s in pr.plan.sections if len(accepted[s.id]) < s.questions]
+    missing = sum(s.questions for s in short)
+    if missing and any(not c.error for c in out.calls):
+        log(f"  {missing} question(s) missing (model wrote fewer or checks rejected some) — topping up…")
+        avoid = [q for s in short for q in accepted[s.id]]
+        run(len(out.calls) + 1, "top-up", short, avoid)
     return out
 
 

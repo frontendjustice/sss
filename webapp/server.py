@@ -232,7 +232,9 @@ def _run_job(jid: str, req: JobRequest, m: dict, prof) -> None:
             return
         if not pr.plan.calls:
             raise RuntimeError("No usable text was found in this file.")
-        log(f"Writing {pr.plan.planned} questions in {len(pr.plan.calls)} call(s)…")
+        for w in pr.plan.warnings:
+            log(f"Note: {w}")
+        log(f"Writing {pr.plan.planned} of {req.questions} requested questions in {len(pr.plan.calls)} call(s)…")
         providers = [Gemini(), Groq()]
         gen = generate(pr, providers, req.difficulty, CACHE, use_cache=True, log=log, fact_check=req.fact_check)
         if not gen.questions:
@@ -242,11 +244,13 @@ def _run_job(jid: str, req: JobRequest, m: dict, prof) -> None:
         _write(SETS / f"{sid}.json", {
             "id": sid, "material_id": m["id"], "title": title, "created": time.time(), "course": pr.course,
             "params": req.model_dump(), "report": report, "questions": gen.questions,
+            "requested": req.questions, "warnings": pr.plan.warnings,
             "usage": {"tokens": gen.tokens, "rejected": dict(gen.rejected),
                       "calls": [c.__dict__ for c in gen.calls]},
         })
         flagged = sum(1 for q in gen.questions if q.get("flag"))
-        log(f"Done: {len(gen.questions)} questions" + (f", {flagged} flagged by fact-check." if flagged else "."))
+        log(f"Done: {len(gen.questions)} of {req.questions} requested"
+            + (f", {flagged} flagged by fact-check." if flagged else "."))
         job["result"] = {"set_id": sid, "report": report, "tokens": gen.tokens}
         job["status"] = "done"
     except Exception as e:  # report any failure to the page instead of a silent hang

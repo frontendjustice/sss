@@ -153,6 +153,7 @@ table.t td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;
   <div class="top"><button class="link" data-go="home">← Back</button><span class="meta" id="revCount"></span></div>
   <h1 style="font-size:1.5rem" id="revTitle"></h1>
   <div class="stat" id="revStats"></div>
+  <div id="revWarn"></div>
   <div class="row" style="margin:10px 0 14px">
     <div class="seg" style="flex:1" id="revFilter"><button data-v="all" aria-pressed="true">All</button><button data-v="flag">Flagged</button></div>
     <button class="btn small" id="revPractice">Practise</button>
@@ -347,7 +348,9 @@ function renderReview() {
   const s = reviewSet, qs = s.questions, flagged = qs.filter(q => q.flag).length, u = s.usage.tokens;
   $("revTitle").textContent = s.title;
   $("revCount").textContent = new Date(s.created * 1000).toLocaleString();
-  $("revStats").innerHTML = `<div><b>${qs.length}</b><span>questions</span></div><div><b>${flagged}</b><span>flagged</span></div>
+  const req = s.requested || qs.length;
+  $("revWarn").innerHTML = (s.warnings || []).map(w => `<p class="meta">ℹ ${esc(w)}</p>`).join("");
+  $("revStats").innerHTML = `<div><b>${qs.length}${req !== qs.length ? ` <span class="meta">of ${req}</span>` : ""}</b><span>questions</span></div><div><b>${flagged}</b><span>flagged</span></div>
     <div><b>${u.input + u.output ? (u.input + u.output).toLocaleString() : "0"}</b><span>${u.input + u.output ? "tokens used" : "tokens (saved results reused)"}</span></div>`;
   $("revFilter").querySelectorAll("button").forEach(b => { b.setAttribute("aria-pressed", b.dataset.v === reviewFilter); b.onclick = () => { reviewFilter = b.dataset.v; renderReview(); }; });
   const list = qs.map((q, i) => [q, i]).filter(([q]) => reviewFilter === "all" || q.flag);

@@ -37,18 +37,28 @@ def test_check_accepts_and_dedupes():
 class FakeProvider:
     name = "fake"
 
-    def __init__(self, fail_first=0, models=("m1",)):
+    def __init__(self, fail_first=0, models=("m1",), short_by=0):
         self.models = list(models)
         self.calls = 0
         self.fail_first = fail_first
+        self.short_by = short_by   # write this many fewer than asked (first successful call only)
+        self.made = 0
+        self.users = []
 
     def generate(self, model, system, user, schema, max_output):
+        import re
         self.calls += 1
         if self.calls <= self.fail_first:
             raise ProviderError("HTTP 503: overloaded", retry_after=0)
-        n = int(user.split()[1])  # "Write N questions, ..."
-        sections = [line.split()[0] for line in user.splitlines()[1:] if line.startswith("S") and "(" in line]
-        items = [q(s=sections[i % len(sections)], stem=f"Question number {i} about beta blockers?") for i in range(n)]
+        self.users.append(user)
+        quotas = re.findall(r"^(S\d+) \((\d+)\):", user, re.M)  # "S1 (4): title"
+        items = []
+        for label, k in quotas:
+            for _ in range(int(k)):
+                self.made += 1
+                items.append(q(s=label, stem=f"Question number {self.made} about beta blockers?"))
+        if self.short_by:
+            items, self.short_by = items[:-self.short_by], 0
         return Result(items, model, input_tokens=100, output_tokens=50)
 
 
@@ -166,3 +176,27 @@ def test_fact_check_flag_kept_and_blank_notes_dropped(prepared, tmp_path):
     flags = [q["flag"] for q in gen.questions]
     assert flags[0] == "Standard texts say X, not Y." and flags[1] is None and flags[2] is None
     assert _meaningful("No conflict.") is None and _meaningful("consistent with standard references") is None
+
+
+def test_top_up_fills_shortfall_without_repeats(prepared, tmp_path):
+    fake = FakeProvider(short_by=2)
+    gen = generate(prepared, [fake], cache_dir=tmp_path, per_minute=0, log=lambda *a: None)
+    assert len(gen.questions) == 6 and fake.calls == 2
+    top_up = fake.users[-1]
+    assert top_up.startswith("Write 2 questions") and top_up.count("(2):") == 1  # only the short section
+    fake2 = FakeProvider(short_by=1)                      # short inside a section that has questions
+    generate(prepared, [fake2], cache_dir=tmp_path / "b", per_minute=0, log=lambda *a: None)
+    assert "already exist" in fake2.users[-1]
+
+
+def test_stretch_when_more_questions_requested(tmp_path):
+    from quizengine.clean import clean
+    from quizengine.extract import extract
+    from quizengine.plan import capacity, make_plan
+    from quizengine.split import split
+    sections = split(clean(extract(build_notes_pdf(tmp_path / "n.pdf")))).sections
+    normal = sum(capacity(s) for s in sections)
+    plan = make_plan(sections, normal + 5)
+    assert plan.planned == normal + 5 and "more than one angle" in plan.warnings[0]
+    huge = make_plan(sections, 1000)
+    assert huge.planned < 1000 and "without inventing facts" in huge.warnings[-1]

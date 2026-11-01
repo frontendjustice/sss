@@ -10,7 +10,7 @@ from __future__ import annotations
 from .profiles import Profile
 from .split import Section
 
-PROMPT_VERSION = "2"  # bump when wording changes, so cached results are not reused
+PROMPT_VERSION = "3"  # bump when wording changes, so cached results are not reused
 
 DIFFICULTY = {
     "easy": "mostly direct recall of key facts",
@@ -27,7 +27,9 @@ def instruction(profile: Profile, course: str | None, difficulty: str = "mixed",
         f"You write multiple-choice exam questions for {profile.audience_text}.",
         f"Standard: {profile.render(profile.standard)}." + (f" Course: {course}." if course else ""),
         "Rules:",
-        "- Use ONLY facts stated in the NOTES. If a section cannot support its quota without guessing, write fewer.",
+        "- Write exactly the number of questions asked for each section, each testing a different fact or angle"
+        " (definition, mechanism, use, adverse effect, contraindication, comparison, case).",
+        "- Use ONLY facts stated in the NOTES. Never invent a fact to reach the number.",
         f"- Mix these types where the notes allow: {', '.join(profile.question_types)}."
         " Calculations only where the notes give the numbers.",
         f"- Exactly {n} options, exactly one correct. Wrong options must be plausible, from the same category"
@@ -53,11 +55,15 @@ def instruction(profile: Profile, course: str | None, difficulty: str = "mixed",
     return "\n".join(lines)
 
 
-def message(sections: list[Section], labels: dict[str, str]) -> str:
+def message(sections: list[Section], labels: dict[str, str], avoid: list[str] | None = None) -> str:
     quota = "\n".join(f"{labels[s.id]} ({s.questions}): {s.title}" for s in sections)
     notes = "\n\n".join(f"[{labels[s.id]}] {s.title}\n{s.text}" for s in sections)
     total = sum(s.questions for s in sections)
-    return f"Write {total} questions, per section:\n{quota}\n\nNOTES\n{notes}"
+    head = f"Write {total} questions, per section:\n{quota}"
+    if avoid:
+        head += ("\n\nThese questions already exist; write NEW ones on other facts or angles, not rewordings:\n"
+                 + "\n".join(f"- {q[:110]}" for q in avoid))
+    return f"{head}\n\nNOTES\n{notes}"
 
 
 def response_schema(fact_check: bool = True) -> dict:

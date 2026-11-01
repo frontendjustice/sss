@@ -77,7 +77,7 @@ def test_allocation_sums_and_respects_capacity(cleaned):
     sections = split(cleaned).sections
     plan = make_plan(sections, 8, max_per_call=5)
     assert plan.planned == 8 == sum(s.questions for s in plan.sections)
-    assert all(s.questions <= s.words // 60 for s in plan.sections)
+    assert all(s.questions <= s.words // 35 for s in plan.sections)
     assert all(c.questions <= 5 or len(c.section_ids) == 1 for c in plan.calls)
     assert sum(c.questions for c in plan.calls) == 8
 
