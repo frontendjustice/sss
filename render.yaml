@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: quiz-builder
+    runtime: docker
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      - key: APP_PASSWORD      # you choose it; the site asks for it before anything loads
+        sync: false
+      - key: GEMINI_API_KEY    # from Google AI Studio
+        sync: false
+      - key: GROQ_API_KEY      # optional backup model
+        sync: false

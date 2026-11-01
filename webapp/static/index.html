@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quiz Builder</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EEF3F1;--surface:#FFFFFF;--ink:#12302C;--muted:#5B706C;--line:#D3DFDB;--primary:#0E6B5C;--primary-ink:#FFFFFF;--soft:#DCEBE6;--ok:#1F7A3E;--ok-soft:#E1F2E6;--bad:#B3261E;--bad-soft:#FBE5E2;--amber:#9A5A00;--amber-soft:#FBEFD9}
+@media (prefers-color-scheme:dark){:root{--bg:#0F1C1A;--surface:#172826;--ink:#E3EEEB;--muted:#9DB2AD;--line:#2A403C;--primary:#3FB39C;--primary-ink:#06221D;--soft:#1E3632;--ok:#5CC98A;--ok-soft:#173326;--bad:#F08A80;--bad-soft:#3A1C1A;--amber:#E7A94A;--amber-soft:#3A2B12}}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%}
+.wrap{max-width:680px;margin:0 auto;padding:20px 16px 56px}
+h1{font-family:"Literata",Georgia,serif;font-weight:600;font-size:2rem;line-height:1.1;margin:6px 0 4px}
+.rx{font-family:"Literata",Georgia,serif;color:var(--primary);font-style:italic}
+h2{font-size:1rem;font-weight:700;margin:22px 0 10px}
+.lede{color:var(--muted);margin:0 0 18px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.btn{appearance:none;border:0;border-radius:12px;background:var(--primary);color:var(--primary-ink);font:inherit;font-weight:700;padding:13px 18px;cursor:pointer;width:100%;font-size:1rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--primary);border:1.5px solid var(--primary)}
+.btn.small{width:auto;padding:8px 14px;font-size:.9rem}
+.link{background:none;border:0;color:var(--primary);font:inherit;font-weight:600;cursor:pointer;padding:6px 0}
+.link.danger{color:var(--bad)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row>.btn{flex:1}
+.meta{color:var(--muted);font-size:.87rem}
+.hidden{display:none!important}
+label.f{display:block;font-size:.88rem;font-weight:600;margin:12px 0 6px}
+input[type=text],input[type=number],select{width:100%;font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px}
+input:focus,select:focus{outline:none;border-color:var(--primary)}
+.seg{display:flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{flex:1;border:0;background:var(--surface);color:var(--ink);font:inherit;padding:10px 8px;cursor:pointer;font-size:.92rem}
+.seg button[aria-pressed="true"]{background:var(--soft);color:var(--primary);font-weight:700}
+.drop{border:2px dashed var(--line);border-radius:14px;padding:18px;text-align:center;color:var(--muted);cursor:pointer}
+.drop b{color:var(--ink)}
+.mat{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:14px;margin-bottom:12px}
+.mat .name{font-weight:700;word-break:break-word}
+.set{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.set:first-of-type{border-top:0}
+.badge{display:inline-block;font-size:.75rem;font-weight:700;border-radius:6px;padding:2px 7px;margin-left:6px}
+.badge.flag{background:var(--amber-soft);color:var(--amber)}
+.badge.ai{background:var(--soft);color:var(--primary)}
+.log{font-family:ui-monospace,Menlo,monospace;font-size:.8rem;background:var(--bg);border-radius:10px;padding:10px;max-height:220px;overflow:auto;white-space:pre-wrap;margin-top:10px}
+table.t{width:100%;border-collapse:collapse;font-size:.88rem}
+table.t td{padding:8px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+table.t td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+.stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin:8px 0}
+.stat div{background:var(--bg);border-radius:10px;padding:8px 10px}
+.stat b{display:block;font-size:1.15rem;font-variant-numeric:tabular-nums}
+.stat span{color:var(--muted);font-size:.78rem}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
+.bar{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin-bottom:18px}
+.bar i{display:block;height:100%;background:var(--primary);width:0;transition:width .25s}
+.stem{font-family:"Literata",Georgia,serif;font-size:1.15rem;line-height:1.55;margin:6px 0 16px}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:12px 14px;font:inherit;cursor:pointer;width:100%}
+.opt .k{flex:0 0 26px;height:26px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-size:.82rem;font-weight:700;color:var(--muted)}
+.opt[aria-pressed="true"]{border-color:var(--primary);background:var(--soft)}
+.opt[aria-pressed="true"] .k{background:var(--primary);border-color:var(--primary);color:var(--primary-ink)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}.opt.right .k{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}.opt.wrong .k{background:var(--bad);border-color:var(--bad);color:#fff}
+.opt:disabled{cursor:default}
+.fb{margin-top:16px;border-radius:12px;padding:14px;border-left:4px solid var(--ok);background:var(--ok-soft)}
+.fb.bad{border-color:var(--bad);background:var(--bad-soft)}
+.fb p{margin:4px 0 0}
+.flagnote{margin-top:10px;border-radius:10px;padding:10px 12px;background:var(--amber-soft);color:var(--ink);border-left:4px solid var(--amber);font-size:.93rem}
+.src{color:var(--muted);font-size:.82rem;margin-top:8px}
+.nav{display:flex;gap:10px;margin-top:20px}.nav .btn{flex:1}
+.score{font-family:"Literata",Georgia,serif;font-size:3.2rem;font-weight:600;line-height:1;margin:8px 0}
+.rq{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:14px;margin-bottom:12px}
+.rq.flagged{border-color:var(--amber)}
+.rq .s{font-family:"Literata",Georgia,serif;margin:4px 0 8px}
+.rq ol{margin:0 0 8px;padding-left:22px;font-size:.93rem}.rq li.ans{color:var(--ok);font-weight:700}
+.rq .e{color:var(--muted);font-size:.92rem}
+.err{color:var(--bad);font-weight:600;margin-top:10px}
+.foot{color:var(--muted);font-size:.8rem;margin-top:28px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<section id="home">
+  <h1>Quiz <span class="rx">Builder</span></h1>
+  <p class="lede">Upload lecture notes, PDFs or Word files and turn them into exam-style questions.</p>
+  <div class="panel">
+    <input id="file" type="file" accept=".pdf,.docx,.txt,.md" class="hidden">
+    <div class="drop" id="drop"><b>Upload notes</b><br><span class="meta">PDF (typed, scanned or handwritten), Word, text · up to 25 MB</span></div>
+    <div class="err hidden" id="uploadErr"></div>
+  </div>
+  <h2>Your materials</h2>
+  <div id="materials"><p class="meta">Loading…</p></div>
+  <p class="foot">Personal test version. Questions are AI-generated from your notes; check flagged ones before relying on them.</p>
+</section>
+
+<section id="make" class="hidden">
+  <div class="top"><button class="link" data-go="home">← Back</button></div>
+  <h1 style="font-size:1.6rem">New <span class="rx">quiz</span></h1>
+  <p class="lede" id="makeName"></p>
+  <div class="panel">
+    <label class="f">Exam type</label>
+    <div class="seg" id="profileSeg"></div>
+    <div id="pepFields">
+      <label class="f" for="pepCourse">Course</label>
+      <select id="pepCourse"></select>
+    </div>
+    <div id="ugFields" class="hidden">
+      <label class="f" for="ugCourse">Course</label>
+      <input id="ugCourse" type="text" placeholder="e.g. PCO 514 Autacoids">
+      <div class="row">
+        <div style="flex:1"><label class="f" for="ugLevel">Level</label><input id="ugLevel" type="text" placeholder="500L"></div>
+        <div style="flex:1"><label class="f" for="ugProg">Programme</label><input id="ugProg" type="text" placeholder="Pharm. D"></div>
+      </div>
+      <label class="f" for="ugInst">School</label>
+      <input id="ugInst" type="text" placeholder="e.g. UNIBEN">
+    </div>
+    <label class="f" for="qcount">Number of questions</label>
+    <input id="qcount" type="number" min="1" max="200" value="20" inputmode="numeric">
+    <label class="f">Difficulty</label>
+    <div class="seg" id="diffSeg"><button data-v="easy">Easy</button><button data-v="mixed" aria-pressed="true">Mixed</button><button data-v="hard">Hard</button></div>
+    <label class="f row" style="gap:8px;font-weight:500"><input type="checkbox" id="factCheck" checked> Fact-check answers against standard references</label>
+    <div class="row" style="margin-top:16px"><button class="btn ghost" id="planBtn">Preview plan</button><button class="btn" id="genBtn">Generate quiz</button></div>
+    <div class="err hidden" id="makeErr"></div>
+  </div>
+  <div class="panel hidden" id="progress">
+    <b id="progTitle">Working…</b>
+    <div class="log" id="log"></div>
+  </div>
+  <div id="planOut"></div>
+</section>
+
+<section id="quiz" class="hidden">
+  <div class="top"><button class="link" id="quitQuiz">✕ Quit</button><span class="meta" id="pos"></span></div>
+  <div class="bar"><i id="barFill"></i></div>
+  <div class="meta" id="qmeta"></div>
+  <div class="stem" id="stem"></div>
+  <div class="opts" id="opts"></div>
+  <div id="fb"></div>
+  <div class="nav"><button class="btn" id="next">Check</button></div>
+</section>
+
+<section id="results" class="hidden">
+  <p class="meta">Round complete</p>
+  <div class="score" id="score"></div>
+  <p class="lede" id="verdict"></p>
+  <div class="row" style="margin-bottom:16px"><button class="btn small" id="retryBtn">Retry the ones I missed</button><button class="btn small ghost" data-go="home">Back to materials</button></div>
+  <div id="missed"></div>
+</section>
+
+<section id="review" class="hidden">
+  <div class="top"><button class="link" data-go="home">← Back</button><span class="meta" id="revCount"></span></div>
+  <h1 style="font-size:1.5rem" id="revTitle"></h1>
+  <div class="stat" id="revStats"></div>
+  <div class="row" style="margin:10px 0 14px">
+    <div class="seg" style="flex:1" id="revFilter"><button data-v="all" aria-pressed="true">All</button><button data-v="flag">Flagged</button></div>
+    <button class="btn small" id="revPractice">Practise</button>
+  </div>
+  <div id="revList"></div>
+  <button class="link danger" id="delSet">Delete this quiz</button>
+</section>
+
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let PROFILES = [], MATERIALS = [], current = null, profileKey = "pep", difficulty = "mixed";
+let quiz = null, reviewSet = null, reviewFilter = "all";
+
+async function api(path, opts = {}) {
+  const r = await fetch(path, opts);
+  const body = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(body.error || `Request failed (${r.status})`);
+  return body;
+}
+function show(id) {
+  for (const s of ["home", "make", "quiz", "results", "review"]) $(s).classList.toggle("hidden", s !== id);
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { show(b.dataset.go); if (b.dataset.go === "home") loadMaterials(); });
+
+// ---------- home ----------
+$("drop").onclick = () => $("file").click();
+$("file").onchange = async () => {
+  const f = $("file").files[0]; if (!f) return;
+  $("uploadErr").classList.add("hidden");
+  $("drop").innerHTML = `<b>Uploading ${esc(f.name)}…</b>`;
+  const fd = new FormData(); fd.append("file", f);
+  try { const m = await api("/api/materials", {method: "POST", body: fd}); await loadMaterials(); openMake(m.id); }
+  catch (e) { $("uploadErr").textContent = e.message; $("uploadErr").classList.remove("hidden"); }
+  $("drop").innerHTML = `<b>Upload notes</b><br><span class="meta">PDF (typed, scanned or handwritten), Word, text · up to 25 MB</span>`;
+  $("file").value = "";
+};
+
+async function loadMaterials() {
+  try { MATERIALS = await api("/api/materials"); }
+  catch (e) { $("materials").innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
+  if (!MATERIALS.length) { $("materials").innerHTML = `<p class="meta">Nothing yet. Upload your first notes above.</p>`; return; }
+  $("materials").innerHTML = MATERIALS.map(m => `
+    <div class="mat">
+      <div class="row" style="justify-content:space-between"><span class="name">${esc(m.name)}</span>
+        <span class="meta">${new Date(m.uploaded * 1000).toLocaleDateString()} · ${(m.size / 1024 / 1024).toFixed(1)} MB</span></div>
+      ${m.sets.map(s => `<div class="set"><div><div>${esc(s.title)}${s.flagged ? `<span class="badge flag">${s.flagged} flagged</span>` : ""}</div>
+        <div class="meta">${esc(s.course || "")} · ${esc(s.difficulty)} · ${new Date(s.created * 1000).toLocaleString()}</div></div>
+        <div class="row" style="flex-wrap:nowrap"><button class="btn small" data-practice="${s.id}">Practise</button><button class="btn small ghost" data-review="${s.id}">Review</button></div></div>`).join("")}
+      <div class="row" style="margin-top:10px"><button class="btn small" data-make="${m.id}">+ New quiz</button>
+        <button class="link danger" data-del="${m.id}" style="margin-left:auto">Delete</button></div>
+    </div>`).join("");
+  document.querySelectorAll("[data-make]").forEach(b => b.onclick = () => openMake(b.dataset.make));
+  document.querySelectorAll("[data-practice]").forEach(b => b.onclick = () => startQuiz(b.dataset.practice));
+  document.querySelectorAll("[data-review]").forEach(b => b.onclick = () => openReview(b.dataset.review));
+  document.querySelectorAll("[data-del]").forEach(b => b.onclick = async () => {
+    if (!confirm("Delete this file and all its quizzes?")) return;
+    await api(`/api/materials/${b.dataset.del}`, {method: "DELETE"}); loadMaterials();
+  });
+}
+
+// ---------- new quiz ----------
+function renderProfiles() {
+  $("profileSeg").innerHTML = PROFILES.map(p => `<button data-v="${p.key}" aria-pressed="${p.key === profileKey}">${p.key === "pep" ? "PEP" : "Undergraduate"}</button>`).join("");
+  $("profileSeg").querySelectorAll("button").forEach(b => b.onclick = () => { profileKey = b.dataset.v; renderProfiles(); });
+  $("pepFields").classList.toggle("hidden", profileKey !== "pep");
+  $("ugFields").classList.toggle("hidden", profileKey === "pep");
+  const pep = PROFILES.find(p => p.key === "pep");
+  if (pep && !$("pepCourse").options.length)
+    $("pepCourse").innerHTML = `<option value="">(no specific course)</option>` + Object.entries(pep.courses).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join("");
+}
+$("diffSeg").querySelectorAll("button").forEach(b => b.onclick = () => {
+  difficulty = b.dataset.v; $("diffSeg").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+});
+function openMake(mid) {
+  current = MATERIALS.find(m => m.id === mid) || {id: mid, name: ""};
+  $("makeName").textContent = current.name;
+  $("progress").classList.add("hidden"); $("planOut").innerHTML = ""; $("makeErr").classList.add("hidden");
+  renderProfiles(); show("make");
+}
+function jobBody(mode) {
+  const ug = profileKey !== "pep";
+  return {material_id: current.id, mode, questions: Math.max(1, Math.min(200, +$("qcount").value || 20)),
+    profile: profileKey, difficulty, fact_check: $("factCheck").checked,
+    course: (ug ? $("ugCourse").value : $("pepCourse").value) || null,
+    level: ug ? $("ugLevel").value || null : null, programme: ug ? $("ugProg").value || null : null,
+    institution: ug ? $("ugInst").value || null : null};
+}
+$("planBtn").onclick = () => runJob("plan");
+$("genBtn").onclick = () => runJob("generate");
+async function runJob(mode) {
+  $("makeErr").classList.add("hidden"); $("planOut").innerHTML = "";
+  setBusy(true);
+  let job;
+  try { job = await api("/api/jobs", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(jobBody(mode))}); }
+  catch (e) { setBusy(false); $("makeErr").textContent = e.message; $("makeErr").classList.remove("hidden"); return; }
+  $("progress").classList.remove("hidden");
+  $("progTitle").textContent = mode === "plan" ? "Preparing the plan…" : "Generating your quiz…";
+  while (job.status === "running") {
+    await new Promise(r => setTimeout(r, 1200));
+    try { job = await api(`/api/jobs/${job.id}`); } catch (e) { continue; }
+    $("log").textContent = job.log.join("\n"); $("log").scrollTop = $("log").scrollHeight;
+  }
+  setBusy(false);
+  if (job.status === "error") { $("progTitle").textContent = "Stopped"; $("makeErr").textContent = job.error; $("makeErr").classList.remove("hidden"); return; }
+  $("progTitle").textContent = mode === "plan" ? "Plan ready" : "Quiz ready";
+  if (mode === "plan") renderPlan(job.result.report);
+  else { await loadMaterials(); openReview(job.result.set_id); }
+}
+function setBusy(b) { $("planBtn").disabled = $("genBtn").disabled = b; }
+function renderPlan(r) {
+  const t = r.tokens, o = r.ocr;
+  const saved = t.raw ? Math.round((1 - t.cleaned / t.raw) * 100) : 0;
+  $("planOut").innerHTML = `<div class="panel">
+    <b>${esc(r.source)}</b> <span class="meta">· ${r.pages} page${r.pages === 1 ? "" : "s"}</span>
+    ${o ? `<p class="meta">Scanned pages: ${o.tesseract_pages} read free by Tesseract, ${o.gemini_pages} by Gemini, ${o.cached} from cache.</p>` : ""}
+    <div class="stat"><div><b>${r.questions.planned}</b><span>questions planned</span></div>
+      <div><b>${r.calls.length}</b><span>model calls</span></div>
+      <div><b>~${(t.est_input_total).toLocaleString()}</b><span>tokens in (est.)</span></div>
+      <div><b>${saved}%</b><span>trimmed by cleaning</span></div></div>
+    ${r.warnings.map(w => `<p class="err">${esc(w)}</p>`).join("")}
+    ${r.skipped_sections.length ? `<p class="meta">Skipped: ${esc(r.skipped_sections.join(", "))}</p>` : ""}
+    <table class="t">${r.sections.map(s => `<tr><td><b>${esc(s.title)}</b><div class="meta">p.${s.pages[0]}${s.pages[1] !== s.pages[0] ? "–" + s.pages[1] : ""} · ${s.words} words</div><div class="meta">${esc(s.preview)}</div></td><td class="n">${s.questions} Q</td></tr>`).join("")}</table>
+  </div>`;
+}
+
+// ---------- practice ----------
+const PIN = /^\s*(all|none|any|both|neither)\s*(of (the|these|them)\b.*|the (above|options?)\.?)?\s*$|\bthe above\b/i;
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function optionOrder(q) {
+  const idx = q.o.map((_, k) => k), pinned = idx.filter(k => PIN.test(q.o[k]));
+  return shuffle(idx.filter(k => !pinned.includes(k))).concat(pinned);
+}
+async function startQuiz(sid, only) {
+  const set = reviewSet && reviewSet.id === sid ? reviewSet : await api(`/api/sets/${sid}`);
+  const items = (only || set.questions.map((_, i) => i));
+  quiz = {set, ids: shuffle(items.slice()), i: 0, ans: {}, locked: {}, ord: {}};
+  quiz.ids.forEach(i => quiz.ord[i] = optionOrder(set.questions[i]));
+  show("quiz"); renderQ();
+}
+function renderQ() {
+  const id = quiz.ids[quiz.i], q = quiz.set.questions[id], ord = quiz.ord[id], a = quiz.ans[id], lock = quiz.locked[id];
+  $("pos").textContent = `${quiz.i + 1} of ${quiz.ids.length}`;
+  $("barFill").style.width = `${100 * quiz.i / quiz.ids.length}%`;
+  $("qmeta").innerHTML = esc(q.type || "") + `<span class="badge ai">AI</span>`;
+  $("stem").textContent = q.q;
+  $("opts").innerHTML = ord.map((k, pos) => {
+    let cls = ""; if (lock) { if (k === q.a) cls = "right"; else if (k === a) cls = "wrong"; }
+    return `<button class="opt ${cls}" data-k="${k}" aria-pressed="${!lock && a === k}" ${lock ? "disabled" : ""}><span class="k">${"ABCDE"[pos]}</span><span>${esc(q.o[k])}</span></button>`;
+  }).join("");
+  $("opts").querySelectorAll(".opt").forEach(b => b.onclick = () => { quiz.ans[id] = +b.dataset.k; renderQ(); });
+  $("fb").innerHTML = lock ? `<div class="fb ${a === q.a ? "" : "bad"}"><b>${a === q.a ? "Correct." : "Not quite. Answer: " + "ABCDE"[ord.indexOf(q.a)] + " – " + esc(q.o[q.a])}</b><p>${esc(q.e)}</p></div>
+    ${q.flag ? `<div class="flagnote"><b>⚠ Fact-check:</b> ${esc(q.flag)}</div>` : ""}
+    <div class="src">From ${esc(q.source.section)} · p.${q.source.pages[0]}${q.source.pages[1] !== q.source.pages[0] ? "–" + q.source.pages[1] : ""}</div>` : "";
+  const last = quiz.i === quiz.ids.length - 1;
+  $("next").textContent = lock ? (last ? "See results" : "Next") : (a === undefined ? "Skip" : "Check");
+}
+$("next").onclick = () => {
+  const id = quiz.ids[quiz.i];
+  if (!quiz.locked[id] && quiz.ans[id] !== undefined) { quiz.locked[id] = true; renderQ(); return; }
+  if (quiz.i < quiz.ids.length - 1) { quiz.i++; renderQ(); } else finish();
+};
+$("quitQuiz").onclick = () => { if (confirm("End this round? Checked answers will be scored.")) finish(); };
+function finish() {
+  const done = quiz.ids.filter(i => quiz.locked[i]), right = done.filter(i => quiz.ans[i] === quiz.set.questions[i].a);
+  const missed = quiz.ids.filter(i => !right.includes(i));
+  const pct = done.length ? Math.round(100 * right.length / done.length) : 0;
+  $("score").textContent = `${pct}%`;
+  $("verdict").textContent = `${right.length} of ${done.length} answered correctly` + (quiz.ids.length > done.length ? ` (${quiz.ids.length - done.length} skipped).` : ".");
+  $("retryBtn").classList.toggle("hidden", !missed.length);
+  $("retryBtn").onclick = () => startQuiz(quiz.set.id, missed);
+  $("missed").innerHTML = missed.length ? `<h2>To revisit</h2>` + missed.map(i => reviewCard(quiz.set.questions[i], i, false)).join("") : "";
+  show("results");
+}
+
+// ---------- review ----------
+function reviewCard(q, i, canDelete) {
+  return `<div class="rq ${q.flag ? "flagged" : ""}">
+    <div class="meta">${esc(q.source.section)} · p.${q.source.pages[0]}${q.flag ? `<span class="badge flag">flagged</span>` : ""}</div>
+    <div class="s">${esc(q.q)}</div>
+    <ol type="A">${q.o.map((o, k) => `<li class="${k === q.a ? "ans" : ""}">${esc(o)}</li>`).join("")}</ol>
+    <div class="e">${esc(q.e)}</div>
+    ${q.flag ? `<div class="flagnote"><b>⚠ Fact-check:</b> ${esc(q.flag)}</div>` : ""}
+    ${canDelete ? `<button class="link danger" data-delq="${i}">Remove question</button>` : ""}</div>`;
+}
+async function openReview(sid) {
+  reviewSet = await api(`/api/sets/${sid}`); reviewFilter = "all"; renderReview(); show("review");
+}
+function renderReview() {
+  const s = reviewSet, qs = s.questions, flagged = qs.filter(q => q.flag).length, u = s.usage.tokens;
+  $("revTitle").textContent = s.title;
+  $("revCount").textContent = new Date(s.created * 1000).toLocaleString();
+  $("revStats").innerHTML = `<div><b>${qs.length}</b><span>questions</span></div><div><b>${flagged}</b><span>flagged</span></div>
+    <div><b>${u.input + u.output ? (u.input + u.output).toLocaleString() : "0"}</b><span>${u.input + u.output ? "tokens used" : "tokens (saved results reused)"}</span></div>`;
+  $("revFilter").querySelectorAll("button").forEach(b => { b.setAttribute("aria-pressed", b.dataset.v === reviewFilter); b.onclick = () => { reviewFilter = b.dataset.v; renderReview(); }; });
+  const list = qs.map((q, i) => [q, i]).filter(([q]) => reviewFilter === "all" || q.flag);
+  $("revList").innerHTML = list.length ? list.map(([q, i]) => reviewCard(q, i, true)).join("") : `<p class="meta">No flagged questions.</p>`;
+  $("revList").querySelectorAll("[data-delq]").forEach(b => b.onclick = async () => {
+    if (!confirm("Remove this question from the quiz?")) return;
+    await api(`/api/sets/${s.id}/questions/${b.dataset.delq}`, {method: "DELETE"});
+    reviewSet = await api(`/api/sets/${s.id}`); renderReview();
+  });
+  $("revPractice").onclick = () => startQuiz(s.id, reviewFilter === "flag" ? list.map(([, i]) => i) : null);
+  $("delSet").onclick = async () => { if (!confirm("Delete this whole quiz?")) return; await api(`/api/sets/${s.id}`, {method: "DELETE"}); show("home"); loadMaterials(); };
+}
+
+(async () => {
+  try { PROFILES = await api("/api/profiles"); } catch (e) {}
+  loadMaterials();
+})();
+</script>
+</body>
+</html>

@@ -75,6 +75,28 @@ prepared = prepare("notes.pdf", 20, load_profile("pep"), course="PCOL")
 prepared.to_dict()
 ```
 
+## Web app (personal version)
+
+`webapp/` is a small FastAPI server plus a single-page, phone-friendly front
+end: upload notes (PDF, Word, text), preview the question plan, generate a
+quiz in the background with live progress, review it (flagged questions
+highlighted, remove bad ones) and practise it with shuffled options.
+
+```bash
+pip install -r requirements.txt
+APP_PASSWORD=choose-one uvicorn webapp.server:app --reload    # http://localhost:8000
+```
+
+Settings: `APP_PASSWORD` (if set, the site asks for it; use any username),
+`DATA_DIR` (uploads, quizzes and cache; default `./data`), `GEMINI_API_KEY`,
+`GROQ_API_KEY`. One generation runs at a time to stay inside free-tier limits.
+Answers are checked in the browser in this personal version.
+
+Deploy: the `Dockerfile` (includes Tesseract) and `render.yaml` let Render
+build it straight from GitHub. On Render's free plan the disk is wiped when the
+service restarts or sleeps, so uploads and quizzes are not kept between
+sessions yet; persistent storage is the next step.
+
 ## Tests
 
 ```bash

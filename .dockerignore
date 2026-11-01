@@ -1,0 +1,6 @@
+.git
+data
+materials
+.quizcache
+tests
+**/__pycache__

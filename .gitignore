@@ -10,3 +10,4 @@ materials/
 *.questions.json
 *.plan.json
 .quizcache/
+data/
