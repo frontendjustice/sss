@@ -1,0 +1,606 @@
+<title>Tech Sell-Off Buy Plan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..800&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+/* Layout: a single research-note column (~44rem) with wide breakouts for charts and tables; cool "terminal paper" neutrals, one ink-blue accent. */
+:root {
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --ink: #0f1720;
+  --ink-2: #47515e;
+  --muted: #6f7b88;
+  --rule: #dce2e9;
+  --accent: #1f5fbf;
+  --accent-soft: #e3ecf9;
+  --series-1: #2a78d6;
+  --series-neutral: #b4bec9;
+  --good: #0ca30c;
+  --warn: #c98500;
+  --bad: #d03b3b;
+  --chip-good-bg: #e2f4e2;
+  --chip-warn-bg: #fbf0d6;
+  --chip-bad-bg: #f9e1e1;
+  --chip-neutral-bg: #e8ecf1;
+  --font-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --surface: #151c24; --ink: #e8edf2; --ink-2: #b2bcc7; --muted: #8592a0;
+    --rule: #28323d; --accent: #6aa3f0; --accent-soft: #18273a; --series-1: #3987e5; --series-neutral: #4b5663;
+    --good: #2fbf2f; --warn: #e0a326; --bad: #e66767;
+    --chip-good-bg: #12301a; --chip-warn-bg: #33290f; --chip-bad-bg: #3a1a1a; --chip-neutral-bg: #222b35;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --surface: #151c24; --ink: #e8edf2; --ink-2: #b2bcc7; --muted: #8592a0;
+  --rule: #28323d; --accent: #6aa3f0; --accent-soft: #18273a; --series-1: #3987e5; --series-neutral: #4b5663;
+  --good: #2fbf2f; --warn: #e0a326; --bad: #e66767;
+  --chip-good-bg: #12301a; --chip-warn-bg: #33290f; --chip-bad-bg: #3a1a1a; --chip-neutral-bg: #222b35;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body);
+  font-size: 1rem; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 2.5rem 4rem;
+}
+.page { max-width: 64rem; margin: 0 auto; display: grid; gap: 3.25rem; }
+.col { max-width: 44rem; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.1; }
+h1 { font-size: clamp(2.2rem, 6vw, 3.6rem); font-weight: 800; font-stretch: 78%; letter-spacing: -0.01em; }
+h2 { font-size: clamp(1.45rem, 3.4vw, 1.9rem); font-weight: 700; font-stretch: 85%; }
+h3 { font-size: 1.1rem; font-weight: 700; font-stretch: 92%; }
+p { margin: 0; }
+.stack { display: grid; gap: 1rem; }
+.stack-sm { display: grid; gap: .5rem; }
+.eyebrow { font-family: var(--font-mono); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.lede { font-size: 1.15rem; color: var(--ink-2); max-width: 44rem; }
+.mono, .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.small { font-size: .875rem; }
+a { color: var(--accent); }
+strong { font-weight: 600; }
+
+/* Header */
+header { display: grid; gap: 1rem; border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; }
+.meta-row { display: flex; flex-wrap: wrap; gap: .4rem 1.25rem; }
+
+/* Verdict block */
+.verdict { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 1.5rem; display: grid; gap: 1.25rem; }
+.verdict-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: .75rem 1rem; }
+.verdict-call { font-family: var(--font-display); font-weight: 800; font-stretch: 80%; font-size: clamp(1.6rem, 4.5vw, 2.3rem); color: var(--accent); }
+.alloc { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: .75rem; }
+.alloc-item { border-top: 3px solid var(--series-1); padding-top: .6rem; display: grid; gap: .1rem; min-width: 0; }
+.alloc-item .tkr { font-family: var(--font-mono); font-weight: 500; font-size: .85rem; color: var(--muted); }
+.alloc-item .amt { font-family: var(--font-display); font-weight: 700; font-size: 1.7rem; font-stretch: 85%; }
+.alloc-item .nm { font-size: .9rem; color: var(--ink-2); }
+.keyfacts { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem 1.5rem; }
+.keyfacts > div { min-width: 0; }
+
+/* Chips */
+.chip { display: inline-flex; align-items: center; gap: .3rem; font-family: var(--font-mono); font-size: .72rem; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; padding: .15rem .5rem; border-radius: 3px; white-space: nowrap; color: var(--ink); }
+.chip-good { background: var(--chip-good-bg); }
+.chip-warn { background: var(--chip-warn-bg); }
+.chip-bad { background: var(--chip-bad-bg); }
+.chip-neutral { background: var(--chip-neutral-bg); }
+.chip .dot { width: .5rem; height: .5rem; border-radius: 50%; flex: none; }
+.chip-good .dot { background: var(--good); }
+.chip-warn .dot { background: var(--warn); }
+.chip-bad .dot { background: var(--bad); }
+.chip-neutral .dot { background: var(--muted); }
+
+/* Stats strip */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.stat { padding: .9rem 1rem .9rem 0; display: grid; gap: .15rem; min-width: 0; }
+.stat .v { font-family: var(--font-display); font-weight: 700; font-size: 1.6rem; font-stretch: 85%; }
+.stat .l { font-size: .82rem; color: var(--ink-2); }
+
+/* Tables */
+.table-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th, td { text-align: left; padding: .55rem .75rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-family: var(--font-mono); font-size: .72rem; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); white-space: nowrap; }
+tr:last-child td { border-bottom: none; }
+td.num, th.num { text-align: right; white-space: nowrap; }
+tr.pick td:first-child { box-shadow: inset 3px 0 0 var(--series-1); }
+
+/* Charts */
+figure { margin: 0; display: grid; gap: .6rem; }
+figcaption { font-size: .85rem; color: var(--ink-2); max-width: 44rem; }
+.chart { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 1rem; overflow-x: auto; }
+.chart svg { display: block; width: 100%; max-width: 46rem; height: auto; min-width: 34rem; }
+.chart svg text { fill: var(--ink-2); font-family: var(--font-mono); font-size: 12px; }
+.chart svg .lbl-strong { fill: var(--ink); font-weight: 500; }
+.chart svg .grid { stroke: var(--rule); stroke-width: 1; }
+.chart svg .zero { stroke: var(--muted); stroke-width: 1; }
+.legend { display: flex; flex-wrap: wrap; gap: .4rem 1.1rem; font-size: .82rem; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: .4rem; }
+.sw { width: .8rem; height: .8rem; border-radius: 2px; display: inline-block; flex: none; }
+.sw-ring { width: .8rem; height: .8rem; border-radius: 50%; border: 2px solid var(--series-1); background: var(--surface); display: inline-block; }
+.sw-dot { width: .8rem; height: .8rem; border-radius: 50%; background: var(--series-1); display: inline-block; }
+.sw-dia { width: .7rem; height: .7rem; background: var(--ink); transform: rotate(45deg); display: inline-block; }
+.hit { fill: transparent; cursor: default; }
+#tip { position: fixed; pointer-events: none; z-index: 20; background: var(--ink); color: var(--bg); font-family: var(--font-mono); font-size: .78rem; line-height: 1.45; padding: .45rem .6rem; border-radius: 4px; max-width: 17rem; white-space: pre-line; }
+
+/* Picks */
+.picks { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 1rem; }
+.pick-card { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 1.1rem 1.2rem; display: grid; gap: .6rem; align-content: start; min-width: 0; }
+.pick-top { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; flex-wrap: wrap; }
+.pick-top .amt { font-family: var(--font-display); font-weight: 700; font-size: 1.35rem; font-stretch: 85%; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: .2rem .9rem; font-size: .86rem; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.risk { font-size: .88rem; color: var(--ink-2); border-top: 1px dashed var(--rule); padding-top: .55rem; }
+
+/* Timeline */
+.timeline { display: grid; gap: 0; border-left: 2px solid var(--rule); margin-left: .35rem; }
+.tl-item { position: relative; padding: 0 0 1.1rem 1.25rem; display: grid; gap: .15rem; }
+.tl-item::before { content: ""; position: absolute; left: -7px; top: .45rem; width: 12px; height: 12px; border-radius: 50%; background: var(--surface); border: 2px solid var(--muted); }
+.tl-item.buy::before { background: var(--series-1); border-color: var(--series-1); }
+.tl-date { font-family: var(--font-mono); font-size: .8rem; color: var(--muted); }
+
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 1rem; }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 1.1rem 1.2rem; display: grid; gap: .6rem; align-content: start; min-width: 0; }
+ul.clean { margin: 0; padding-left: 1.1rem; display: grid; gap: .35rem; }
+.callout { background: var(--accent-soft); border-radius: 6px; padding: 1rem 1.2rem; }
+footer { border-top: 1px solid var(--rule); padding-top: 1.25rem; display: grid; gap: .6rem; font-size: .82rem; color: var(--ink-2); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 30rem) { .verdict, .panel, .pick-card { padding: 1rem; } }
+</style>
+
+<div class="page">
+  <header>
+    <div class="eyebrow">Research note · Friday 6 Nov 2026 · prices at the 5 Nov close</div>
+    <h1>Tech Sell-Off Buy Plan</h1>
+    <p class="lede">Is it time to buy the 25 tech stocks now in bear-market territory, and which ones? This note looks at the macro picture, valuations, history and risk to give a buying plan for $1,000 of new money, plus what to do with your AMD and Nebius shares.</p>
+    <div class="meta-row small muted">
+      <span>Investor: low risk tolerance · 6-month horizon · shares only · no crypto names</span>
+      <span>Already holds: AMD (cost $400) · Nebius (cost $200)</span>
+    </div>
+  </header>
+
+  <section class="verdict" aria-labelledby="v-h">
+    <div class="verdict-head">
+      <span class="eyebrow" id="v-h">The decision</span>
+      <span class="verdict-call">Start buying, but in four steps</span>
+    </div>
+    <div class="col stack">
+      <p>Yesterday looked like a panic flush: chip stocks had their second-worst day ever, and the fear gauge hit "extreme fear". The businesses themselves are still growing fast, and the five names below now trade at 15 to 19 times next year's earnings. That is cheap for this group. The macro picture has not turned, though. The Fed is still raising rates and selling hit Taiwan again this morning. Nobody can call the exact low, so spread the $1,000 over five weeks and keep $200 back in case prices fall much further.</p>
+    </div>
+    <div class="alloc" id="alloc"></div>
+    <div class="keyfacts small">
+      <div class="stack-sm"><span class="chip chip-good"><span class="dot"></span>Hold</span><p><strong>AMD:</strong> you're about breakeven. Keep it, but don't add. Alongside the three chip stocks in this plan, you have enough chip exposure.</p></div>
+      <div class="stack-sm"><span class="chip chip-warn"><span class="dot"></span>Wait for 12 Nov</span><p><strong>Nebius:</strong> don't put more money in before its 12 Nov results. Decide afterwards using the rules in section 10.</p></div>
+      <div class="stack-sm"><span class="chip chip-neutral"><span class="dot"></span>Expectation</span><p>The model gives this plan about a <strong>63% chance</strong> of being up in six months, and about a <strong>7% chance</strong> of being down more than 20%. No stock is certain to do well.</p></div>
+    </div>
+  </section>
+
+  <!-- 1. What happened -->
+  <section class="stack" aria-labelledby="s1">
+    <div class="eyebrow">1 · What happened</div>
+    <h2 id="s1">Fear about AI rules hit stocks whose earnings are still rising</h2>
+    <div class="stats">
+      <div class="stat"><span class="v num">−5.5%</span><span class="l">Nasdaq on 5 Nov, closing 12% below its 6 Oct record</span></div>
+      <div class="stat"><span class="v num">−12.3%</span><span class="l">Chip-stock index (SOX), its 2nd-worst day ever; now 38% below June high</span></div>
+      <div class="stat"><span class="v num">28.2</span><span class="l">VIX fear gauge, up 70% in a day</span></div>
+      <div class="stat"><span class="v num">20</span><span class="l">CNN Fear &amp; Greed, "Extreme Fear"</span></div>
+    </div>
+    <div class="two">
+      <div class="panel">
+        <h3>Why it fell</h3>
+        <ul class="clean small">
+          <li><strong>Election:</strong> Democrats won both houses of Congress on 3 Nov. Opposition to new data centers was a campaign issue, and one Democrat called for pausing advanced AI.</li>
+          <li><strong>Earnings:</strong> Qualcomm (phone sales −26%) and Arm gave weak outlooks on 4 Nov.</li>
+          <li><strong>Rates:</strong> the Fed raised rates in September, held them at 3.75–4% in October, and markets give 65–83% odds of another rise on 9 Dec. The 10-year yield hit 5.36% in October (its highest since 2002) and is now about 4.85%.</li>
+          <li><strong>Oil and inflation:</strong> Brent is about $95 because of the Iran war, and inflation is 3.4%.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>What did not change</h3>
+        <ul class="clean small">
+          <li><strong>Nvidia</strong> sales grew 106% last quarter, and it guided to $108B next quarter.</li>
+          <li><strong>AMD</strong> beat estimates on 3 Nov and guided $17B for Q4. It then fell 17% anyway.</li>
+          <li><strong>Alphabet, Amazon and Microsoft</strong> all said their AI spending will rise further in 2027.</li>
+          <li><strong>TSMC</strong> guided Q4 sales up 58% from a year earlier.</li>
+        </ul>
+        <p class="small muted">Prices fell because investors now pay less for each dollar of profit. Profit estimates themselves have not fallen.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Can you time the bottom -->
+  <section class="stack" aria-labelledby="s2">
+    <div class="eyebrow">2 · Timing the bottom</div>
+    <h2 id="s2">Half the usual bottom signals are on</h2>
+    <p class="col">Bottoms are a process. Fear and selling usually peak first. Rates, policy and a clear price rebound tend to follow weeks later. Four of the eight signals below are on. That suggests buying a first portion now and saving the rest for confirmation.</p>
+    <div class="table-wrap">
+      <table id="signals"><thead><tr><th>Signal</th><th>Status</th><th>Evidence</th></tr></thead><tbody></tbody></table>
+    </div>
+    <figure>
+      <div class="chart" id="chart-dd"></div>
+      <figcaption>How far chip stocks fell in past bear markets, peak to low. Today's −38% is already deeper than 2018, but short of 2022's rate-driven fall. The 2008 and 2000 crashes came with a recession or a burst bubble. The −65% to −82% falls need a recession, and there's no sign of one yet: jobless claims are near a 57-year low.</figcaption>
+    </figure>
+    <div class="callout small col">History supports buying in stages. The S&amp;P 500 has risen in the 12 months after every midterm election since 1946 (19 out of 19). Since 2011 the Nasdaq has gained an average of 22% in the year after a correction. Neither is a guarantee: both streaks happened without an aggressive Fed hiking cycle.</div>
+  </section>
+
+  <!-- 3. Screen -->
+  <section class="stack" aria-labelledby="s3">
+    <div class="eyebrow">3 · Model A · Screen</div>
+    <h2 id="s3">From 25 stocks to 7 worth scoring</h2>
+    <p class="col">First, remove anything that doesn't fit your profile: the crypto-linked stocks, companies that lose money or borrow heavily, recent listings, extreme valuations, and memory and storage makers whose profits swing with the chip cycle. A big drop alone doesn't make a stock cheap. SanDisk is down 66%, but its earnings are probably near a cyclical peak.</p>
+    <div class="table-wrap">
+      <table id="screen"><thead><tr><th>Ticker</th><th class="num">From high</th><th>Result</th><th>Reason</th></tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <!-- 4. Scorecard -->
+  <section class="stack" aria-labelledby="s4">
+    <div class="eyebrow">4 · Model B · Factor scorecard</div>
+    <h2 id="s4">Nvidia and TSMC score highest</h2>
+    <p class="col">Each stock is scored 0–100 on six factors, weighted for a low-risk investor: valuation 25%, quality 20%, risk 20%, growth 15%, balance sheet 15%, catalyst 5%. AMD ranks fifth, but you already own it. Micron looks very cheap at 5.5× earnings, but it scores last because its earnings are near a cyclical peak.</p>
+    <figure>
+      <div class="legend"><span><i class="sw" style="background:var(--series-1)"></i>Buy</span><span><i class="sw" style="background:var(--series-neutral)"></i>Not buying</span></div>
+      <div class="chart" id="chart-score"></div>
+    </figure>
+    <div class="table-wrap">
+      <table id="factors"><thead><tr><th>Ticker</th><th class="num">Price</th><th class="num">Fwd P/E</th><th class="num">EPS growth</th><th class="num">PEG</th><th class="num">Value</th><th class="num">Growth</th><th class="num">Quality</th><th class="num">Balance</th><th class="num">Risk</th><th class="num">Score</th></tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <!-- 5. Reverse DCF -->
+  <section class="stack" aria-labelledby="s5">
+    <div class="eyebrow">5 · Model C · Reverse DCF</div>
+    <h2 id="s5">How much growth is already in the price?</h2>
+    <p class="col">This model works backwards from today's price. For you to earn 10% a year and the stock to end at 18× earnings in five years, how fast must profits grow? The answer is the hollow circle below. The filled dot is the growth analysts actually expect. The bigger the gap, the more room for error you have. Nvidia only needs 6% a year and is expected to grow 45%. Micron's price already assumes earnings will shrink.</p>
+    <figure>
+      <div class="legend"><span><i class="sw-ring"></i>Growth the price needs (5-yr annual)</span><span><i class="sw-dot"></i>Growth expected next year</span></div>
+      <div class="chart" id="chart-dcf"></div>
+      <figcaption>Assumptions: 10% required return (4.85% 10-year Treasury yield plus a 5% equity risk premium) and an exit P/E of 18. Next year's growth beats a five-year rate, so read the gap as a cushion, not a forecast.</figcaption>
+    </figure>
+  </section>
+
+  <!-- 6. Scenarios -->
+  <section class="stack" aria-labelledby="s6">
+    <div class="eyebrow">6 · Model D · Six-month scenarios</div>
+    <h2 id="s6">The range of six-month outcomes is wide for every stock</h2>
+    <p class="col">There are four scenarios. A deep bear market (recession, 10% chance). A 2022-style squeeze from rising rates (25%). A choppy recovery (40%). A sharp V-shaped rebound (25%). Each moves earnings and the price investors pay for them. The diamond marks the probability-weighted result. Alphabet and Meta have the narrowest ranges, which is why they get a place despite lower expected returns.</p>
+    <figure>
+      <div class="legend"><span><i class="sw" style="background:var(--series-neutral)"></i>Deep bear to bull range</span><span><i class="sw-dot"></i>Bear and base cases</span><span><i class="sw-dia"></i>Expected (probability-weighted)</span></div>
+      <div class="chart" id="chart-scen"></div>
+    </figure>
+    <div class="table-wrap">
+      <table id="scen"><thead><tr><th>Ticker</th><th class="num">Deep bear</th><th class="num">Bear</th><th class="num">Base</th><th class="num">Bull</th><th class="num">Expected</th></tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <!-- 7. The five -->
+  <section class="stack" aria-labelledby="s7">
+    <div class="eyebrow">7 · The five picks</div>
+    <h2 id="s7">Four core holdings and one diversifier</h2>
+    <p class="col">Amounts follow the score, scaled down for how volatile each stock is. That's why Alphabet gets the most money even though Nvidia scores higher. Use fractional shares (Nvidia's $175 buys about 0.96 of a share). The "buy early" price lets you make that stock's next purchase ahead of schedule.</p>
+    <div class="picks" id="picks"></div>
+  </section>
+
+  <!-- 8. Buying plan -->
+  <section class="stack" aria-labelledby="s8">
+    <div class="eyebrow">8 · The buying plan</div>
+    <h2 id="s8">Three scheduled purchases and a reserve</h2>
+    <div class="two">
+      <div class="panel">
+        <h3>Calendar</h3>
+        <div class="timeline" id="timeline"></div>
+      </div>
+      <div class="panel">
+        <h3>Rules</h3>
+        <ul class="clean small">
+          <li><strong>Buy early:</strong> if a stock closes at or below its "buy early" price, make its next purchase now.</li>
+          <li><strong>Reserve ($200):</strong> use it only if the chip index (SOX) closes near 7,200 (about −50% from its peak, deeper than 2022) or your basket is 20% below your first-purchase prices, <em>and</em> the pause rules below are not triggered. Otherwise leave it in cash until the May review.</li>
+          <li><strong>Pause</strong> remaining purchases if any of these happen: Nvidia guides next quarter below $108B; a big cloud company cuts its 2027 AI spending plan; Congress <em>passes</em> (not just proposes) a data-center moratorium; military escalation around Taiwan; the 10-year yield goes back above 5.3%.</li>
+          <li><strong>Don't sell in a panic.</strong> If the basket is down 25% but none of the pause rules have triggered, hold and stop buying. If a pause rule has triggered, cut the affected stock.</li>
+          <li><strong>Reviews:</strong> early February 2027, after Q4 earnings and the 2027 AI-spending guidance, and the six-month mark in May 2027.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table id="tranches"><thead><tr><th>Ticker</th><th class="num">1 · 10–11 Nov</th><th class="num">2 · 18–20 Nov</th><th class="num">3 · 10–11 Dec</th><th class="num">Reserve</th><th class="num">Total</th><th class="num">Buy early at</th></tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <!-- 9. Monte Carlo -->
+  <section class="stack" aria-labelledby="s9">
+    <div class="eyebrow">9 · Model E · Monte Carlo, 20,000 simulated paths</div>
+    <h2 id="s9">Buying in steps mainly protects the bad outcomes</h2>
+    <p class="col">I simulated the five stocks over six months 20,000 times, using today's elevated volatility and the fact that chip stocks tend to move together. Buying in steps barely changes the typical result. It does cut the chance of losing more than 20% from about 12% to 7%, at a cost of roughly $27 of average return. For your risk tolerance, that trade is worth making.</p>
+    <figure>
+      <div class="legend"><span><i class="sw" style="background:var(--series-neutral)"></i>5th–95th percentile of value after 6 months</span><span><i class="sw-dia"></i>Median</span></div>
+      <div class="chart" id="chart-mc"></div>
+    </figure>
+    <div class="table-wrap">
+      <table id="mc"><thead><tr><th>Approach</th><th class="num">Bad case (5th pct)</th><th class="num">Median</th><th class="num">Good case (95th pct)</th><th class="num">Chance of loss</th><th class="num">Chance of loss &gt;20%</th></tr></thead><tbody></tbody></table>
+    </div>
+    <p class="small muted col">Even if you put everything in at once and end up fine, a typical path would show you down about 11% at some point along the way (median worst point $886). Expect that, and don't let it push you into selling.</p>
+  </section>
+
+  <!-- 10. Holdings -->
+  <section class="stack" aria-labelledby="s10">
+    <div class="eyebrow">10 · Your current holdings</div>
+    <h2 id="s10">AMD and Nebius</h2>
+    <div class="two">
+      <div class="panel">
+        <div class="pick-top"><h3>AMD · $404.40</h3><span class="chip chip-good"><span class="dot"></span>Hold, don't add</span></div>
+        <p class="small">About <strong>+1%</strong> against your $400 cost. AMD has the highest expected return of the seven stocks scored (+26%). It also has the widest range of outcomes: on 5 Nov it fell 17% right after beating estimates. It trades at about 24× next year's earnings, against about 15× for Nvidia.</p>
+        <ul class="clean small">
+          <li>Keep it. Your AMD shares count as your AMD exposure, so don't add more.</li>
+          <li>If it gets back to $480–490 (where it was before the sell-off), think about selling about a third. That locks in roughly +20% on those shares and reduces how much of your money sits in chip stocks.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <div class="pick-top"><h3>Nebius · ~$118</h3><span class="chip chip-warn"><span class="dot"></span>Decide after 12 Nov</span></div>
+        <p class="small">About <strong>−41%</strong> against your $200 cost (I couldn't confirm the 5 Nov close; it traded $113–138 that day). Nebius fails the screen for your profile. It loses money, will spend $16–25B on data centers in 2026, carries about $8.5B of convertible debt, and gets most of its contracts from two customers. It also reported a construction delay on the Microsoft site, and rising interest rates make its financing more expensive.</p>
+        <ul class="clean small">
+          <li><strong>Hold</strong> if, on 12 Nov, revenue is about $905M or more, the full-year guidance of $3.0–3.4B stays, and there's no big new share sale.</li>
+          <li><strong>Sell and move the money into the basket</strong> (Alphabet or Nvidia) if guidance is cut, more dilution is announced, or the delay spreads. Where your tax rules allow, the loss can offset gains.</li>
+          <li>Ignore your $200 cost when deciding. Ask whether you would buy Nebius today at $118 with your risk tolerance. The screen says no.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11. Red team -->
+  <section class="stack" aria-labelledby="s11">
+    <div class="eyebrow">11 · Second opinion</div>
+    <h2 id="s11">A second AI model tried to pick the plan apart</h2>
+    <p class="col">I gave Google's Gemini model the same facts and asked it to argue against the plan. Its verdict was <strong>"agree with changes"</strong>. Here is how I handled its points:</p>
+    <div class="table-wrap">
+      <table><thead><tr><th>Gemini's objection</th><th>Response</th></tr></thead><tbody>
+        <tr><td>Putting 100% in tech doesn't fit a low risk tolerance (39% chance of loss).</td><td><span class="chip chip-good"><span class="dot"></span>Adopted in part</span> Added a $200 reserve that's only spent after a much deeper fall. I didn't cut to 50%, because you want to be invested for the rebound.</td></tr>
+        <tr><td>Don't buy before the jobs report and the Nebius and Nvidia results.</td><td><span class="chip chip-good"><span class="dot"></span>Adopted in part</span> The first purchase is now smaller ($250, down from $350) and moved to 10–11 Nov, after the jobs report and TSMC's October sales.</td></tr>
+        <tr><td>Drop the rule that buys early when prices fall.</td><td><span class="chip chip-neutral"><span class="dot"></span>Kept the rule</span> Buying lower is the point, but it now only applies while no pause rule has triggered.</td></tr>
+        <tr><td>Reduce Alphabet because its free cash flow turned negative.</td><td><span class="chip chip-good"><span class="dot"></span>Adopted</span> Lowered Alphabet's and Meta's balance-sheet scores. Alphabet keeps the largest amount because it is the least volatile stock. TSMC goes up to $225.</td></tr>
+      </tbody></table>
+    </div>
+  </section>
+
+  <!-- 12. Risks -->
+  <section class="stack" aria-labelledby="s12">
+    <div class="eyebrow">12 · What would change the call</div>
+    <h2 id="s12">What could make this plan wrong</h2>
+    <div class="two">
+      <div class="panel"><h3>Bearish</h3><ul class="clean small">
+        <li>The Fed raises rates on 9 Dec and signals more. 2022 showed how that can push chip stocks down about 45%.</li>
+        <li>A cloud company trims 2027 AI spending. The whole AI-hardware story depends on that spending.</li>
+        <li>The Iran war pushes oil back above $100 and keeps inflation above 3.5%.</li>
+        <li>Real AI legislation passes, as opposed to proposals.</li>
+        <li>Rising tension around Taiwan, which hits TSMC directly and every chip maker indirectly.</li>
+      </ul></div>
+      <div class="panel"><h3>Bullish</h3><ul class="clean small">
+        <li>Nvidia beats and raises again on about 17 Nov, and the stock holds the gain.</li>
+        <li>Inflation cools and the odds of a December hike fall below 50%.</li>
+        <li>Cloud companies give specific 2027 spending numbers (one analyst estimate is around $1 trillion combined).</li>
+        <li>Policy turns out mild: without 60 Senate votes, the new majority can't easily pass sweeping AI rules.</li>
+        <li>The post-midterm pattern holds, as it has 19 times out of 19.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <footer>
+    <p><strong>This is research, not personal financial advice.</strong> Figures come from news and data sites as of 5–6 Nov 2026. Several sources disagreed, and some estimates (forward P/E, growth) are approximate. Meta's 5 Nov move is an assumption (−4%). Check live quotes before trading. Prices on 6 Nov may already differ: Taiwan's market hit its daily limit-down this morning.</p>
+    <p>The models, inputs and sources are in the repository at <span class="mono">analysis/2026-11-tech-bear-market/</span>. Edit the inputs in <span class="mono">model.py</span> and re-run it to update every number on this page.</p>
+  </footer>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+const D = {"asof": "2026-11-05 close", "rows": [{"ticker": "NVDA", "name": "Nvidia", "price": 181.6, "dd": -25, "fwd_pe": 15.0, "growth": 0.45, "nov5": -9.3, "peg": 0.33, "parts": {"valuation": 65.0, "growth": 75.0, "quality": 100.0, "balance": 100.0, "risk": 45.3, "catalyst": 70}, "score": 75.1, "implied_growth": 0.06061175440289013, "growth_cushion": 0.3893882455971099, "ev6m": 0.19061266397808832, "downside6m": -0.06822668685626027, "scenarios": {"Deep bear (recession / 2000-08 style)": -0.422, "Bear (2022-style rate squeeze)": -0.1041, "Base (choppy repair)": 0.2644, "Bull (V-shaped recovery)": 0.6124}, "catalyst": "Q3 FY27 earnings ~17 Nov (guided $108B revenue)"}, {"ticker": "TSM", "name": "TSMC", "price": 353.1, "dd": -28, "fwd_pe": 16.5, "growth": 0.3, "nov5": -10.8, "peg": 0.55, "parts": {"valuation": 66.7, "growth": 50.0, "quality": 100.0, "balance": 100.0, "risk": 55.7, "catalyst": 70}, "score": 73.8, "implied_growth": 0.08102309662176066, "growth_cushion": 0.21897690337823933, "ev6m": 0.1273484515667728, "downside6m": -0.08319895052680168, "scenarios": {"Deep bear (recession / 2000-08 style)": -0.4527, "Bear (2022-style rate squeeze)": -0.1517, "Base (choppy repair)": 0.1972, "Bull (V-shaped recovery)": 0.5267}, "catalyst": "October sales 10 Nov; Q4 guided +58% y/y"}, {"ticker": "AVGO", "name": "Broadcom", "price": 291.53, "dd": -41, "fwd_pe": 16.75, "growth": 0.4, "nov5": -10.4, "peg": 0.42, "parts": {"valuation": 70.5, "growth": 66.7, "quality": 100.0, "balance": 50.0, "risk": 50.3, "catalyst": 70}, "score": 68.7, "implied_growth": 0.08427924928078112, "growth_cushion": 0.3157207507192189, "ev6m": 0.16990477710794896, "downside6m": -0.07312746615093804, "scenarios": {"Deep bear (recession / 2000-08 style)": -0.4321, "Bear (2022-style rate squeeze)": -0.1197, "Base (choppy repair)": 0.2424, "Bull (V-shaped recovery)": 0.5843}, "catalyst": "FQ4 earnings 9 Dec (guided $21.7B AI revenue)"}, {"ticker": "GOOGL", "name": "Alphabet", "price": 282.57, "dd": -32, "fwd_pe": 19.1, "growth": 0.15, "nov5": -2.2, "peg": 1.27, "parts": {"valuation": 46.8, "growth": 25.0, "quality": 100.0, "balance": 75.0, "risk": 82.6, "catalyst": 70}, "score": 66.7, "implied_growth": 0.113127360020985, "growth_cushion": 0.03687263997901499, "ev6m": 0.06680415072308371, "downside6m": -0.05745459155884879, "scenarios": {"Deep bear (recession / 2000-08 style)": -0.3394, "Bear (2022-style rate squeeze)": -0.0941, "Base (choppy repair)": 0.1153, "Bull (V-shaped recovery)": 0.3126}, "catalyst": "Cloud +103%, $561B backlog; trades near 52-wk low $270.70"}, {"ticker": "AMD", "name": "AMD", "price": 404.4, "dd": -39, "fwd_pe": 24.5, "growth": 0.6, "nov5": -17.3, "peg": 0.41, "parts": {"valuation": 53.3, "growth": 100.0, "quality": 75.0, "balance": 75.0, "risk": 27.3, "catalyst": 70}, "score": 63.5, "implied_growth": 0.16996104307148885, "growth_cushion": 0.43003895692851113, "ev6m": 0.2582702809809982, "downside6m": -0.08784718197204133, "scenarios": {"Deep bear (recession / 2000-08 style)": -0.513, "Bear (2022-style rate squeeze)": -0.1462, "Base (choppy repair)": 0.3282, "Bull (V-shaped recovery)": 0.8594}, "catalyst": "Q4 guide $17B; 2027 revenue growth >80% guided"}, {"ticker": "META", "name": "Meta", "price": 605.08, "dd": -26, "fwd_pe": 17.8, "growth": 0.09, "nov5": -4.0, "peg": 1.98, "parts": {"valuation": 23.7, "growth": 15.0, "quality": 100.0, "balance": 50.0, "risk": 84.8, "catalyst": 70}, "score": 56.1, "implied_growth": 0.09754461836191286, "growth_cushion": -0.007544618361912864, "ev6m": 0.0386016915064216, "downside6m": -0.06518843843692021, "scenarios": {"Deep bear (recession / 2000-08 style)": -0.3569, "Bear (2022-style rate squeeze)": -0.118, "Base (choppy repair)": 0.0858, "Bull (V-shaped recovery)": 0.2779}, "catalyst": "Ad revenue +26%; 2027 EPS est. ~$34"}, {"ticker": "MU", "name": "Micron", "price": 656.39, "dd": -48, "fwd_pe": 5.5, "growth": 0.05, "nov5": -17.5, "peg": 1.1, "parts": {"valuation": 37.0, "growth": 8.3, "quality": 50.0, "balance": 75.0, "risk": 11.9, "catalyst": 70}, "score": 37.6, "implied_growth": -0.132217831118967, "growth_cushion": 0.182217831118967, "ev6m": -0.09135164082853243, "downside6m": -0.1999949176371184, "scenarios": {"Deep bear (recession / 2000-08 style)": -0.7182, "Bear (2022-style rate squeeze)": -0.462, "Base (choppy repair)": -0.0317, "Bull (V-shaped recovery)": 0.4346}, "catalyst": "Record FY26 ($133B rev) - classic peak-cycle setup"}], "picks": ["NVDA", "TSM", "AVGO", "GOOGL", "META"], "dollars": {"NVDA": 175, "TSM": 225, "AVGO": 175, "GOOGL": 250, "META": 175}, "portfolio_ev6m": 0.11520028748697511, "monte_carlo": {"lump": {"mean": 1111.7786917608967, "median": 1074.730724553735, "p5": 713.9297212876311, "p95": 1641.512622551003, "prob_loss": 0.3863, "prob_loss_gt20": 0.1173, "median_worst_point": 886.371650449559}, "tranche": {"mean": 1085.0796131520137, "median": 1062.850780549836, "p5": 766.9596603613446, "p95": 1477.7420932376942, "prob_loss": 0.3729, "prob_loss_gt20": 0.07195}, "reserve_used": 0.2566}, "screen": [{"ticker": "SNDK", "dd": -66, "verdict": "FAIL", "reason": "Deep NAND cycle; -22% on 5 Nov; peak-earnings risk"}, {"ticker": "ARM", "dd": -64, "verdict": "FAIL", "reason": "Royalty miss on 4 Nov; still a premium multiple; 2nd-order AI play"}, {"ticker": "COIN", "dd": -63, "verdict": "EXCLUDED", "reason": "Crypto-linked (your rule)"}, {"ticker": "NBIS", "dd": -62, "verdict": "FAIL", "reason": "Loss-making, $16-25B capex, convertibles, 2 customers; earnings 12 Nov"}, {"ticker": "STX", "dd": -60, "verdict": "FAIL", "reason": "Storage hardware cycle; high beta"}, {"ticker": "MRVL", "dd": -59, "verdict": "FAIL", "reason": "-16% on 5 Nov; custom-silicon share risk vs AVGO"}, {"ticker": "NOW", "dd": -57, "verdict": "FAIL", "reason": "Agentic AI threatens seat-based software pricing"}, {"ticker": "ORCL", "dd": -56, "verdict": "FAIL", "reason": "$20B stock+bond raise, $125B+ debt, FCF negative to 2028, OpenAI concentration"}, {"ticker": "APP", "dd": -54, "verdict": "FAIL", "reason": "Ad-tech, high volatility, governance/short-seller history"}, {"ticker": "CRCL", "dd": -54, "verdict": "EXCLUDED", "reason": "Crypto-linked (your rule)"}, {"ticker": "SMCI", "dd": -51, "verdict": "FAIL", "reason": "Accounting/governance history; thin server margins"}, {"ticker": "MU", "dd": -48, "verdict": "SCORE", "reason": "Cheap (5-6x) but deep-cyclical - scored as a control"}, {"ticker": "DELL", "dd": -47, "verdict": "FAIL", "reason": "-15% on 5 Nov; low-margin AI servers"}, {"ticker": "SPCX", "dd": -47, "verdict": "FAIL", "reason": "New IPO: little trading history, very rich valuation"}, {"ticker": "QCOM", "dd": -43, "verdict": "FAIL", "reason": "Handset revenue -26%, margin guide cut"}, {"ticker": "AVGO", "dd": -41, "verdict": "SCORE", "reason": "Passes"}, {"ticker": "AMD", "dd": -39, "verdict": "SCORE", "reason": "Passes (you already own it)"}, {"ticker": "HOOD", "dd": -38, "verdict": "EXCLUDED", "reason": "Crypto-linked (your rule)"}, {"ticker": "GOOGL", "dd": -32, "verdict": "SCORE", "reason": "Passes"}, {"ticker": "TSLA", "dd": -32, "verdict": "FAIL", "reason": "Valuation rests on autonomy/robotics optionality; not low-risk"}, {"ticker": "PLTR", "dd": -28, "verdict": "FAIL", "reason": "~95-120x forward earnings even after the drop"}, {"ticker": "TSM", "dd": -28, "verdict": "SCORE", "reason": "Passes"}, {"ticker": "META", "dd": -26, "verdict": "SCORE", "reason": "Passes"}, {"ticker": "CRWD", "dd": -26, "verdict": "FAIL", "reason": "~150x+ forward earnings; software de-rating risk"}, {"ticker": "NVDA", "dd": -25, "verdict": "SCORE", "reason": "Passes"}], "signals": [{"signal": "Sentiment washed out (CNN Fear & Greed <= 20)", "on": true, "note": "Hit 20 'Extreme Fear' on 5 Nov"}, {"signal": "Volatility spike (VIX > 28)", "on": true, "note": "VIX +70% to 28.2 - biggest jump since Apr 2025"}, {"signal": "Capitulation-style breadth", "on": true, "note": "Nasdaq decliners 4,166 vs 855 advancers; SOX -12.3%, 2nd-worst day ever"}, {"signal": "Fundamentals still rising", "on": true, "note": "AMD beat+raise, Nvidia guided $108B, 2027 hyperscaler capex guided up"}, {"signal": "Rates turning supportive", "on": false, "note": "Fed hiked in Sept; 65-83% odds of another hike on 9 Dec; 10y ~4.85%"}, {"signal": "Selling has stopped", "on": false, "note": "Taiwan market hit limit-down on 6 Nov - selling still spreading"}, {"signal": "Price confirmation (follow-through rally)", "on": false, "note": "Not yet: need a strong up day on rising volume 4-10 days after the low"}, {"signal": "Policy clarity on AI / data centers", "on": false, "note": "New Congress sits Jan 2027; regulation path unknown"}], "signals_on": 4, "signals_total": 8, "assumptions": {"discount_rate": 0.1, "exit_pe": 18.0, "weights": {"valuation": 0.25, "growth": 0.15, "quality": 0.2, "balance": 0.15, "risk": 0.2, "catalyst": 0.05}, "scenario_probs": {"Deep bear (recession / 2000-08 style)": 0.1, "Bear (2022-style rate squeeze)": 0.25, "Base (choppy repair)": 0.4, "Bull (V-shaped recovery)": 0.25}}};
+const PICKS = {
+  GOOGL: { name: "Alphabet", early: 270, why: "Smallest fall on 5 Nov (−2.2%). Cloud revenue +103% with a $561B backlog. About 19× earnings, close to its 52-week low of $270.70.", risk: "Q3 free cash flow turned negative because of AI spending; antitrust cases; AI chatbots could disrupt search." },
+  TSM:   { name: "TSMC", early: 320, why: "Makes the chips for Nvidia, AMD, Broadcom and Apple, so it wins whichever AI chip wins. About 16.5× earnings; guided Q4 sales up 58%.", risk: "Taiwan geopolitics. Taiwan's market hit limit-down on 6 Nov, so the US-listed shares may open lower." },
+  NVDA:  { name: "Nvidia", early: 165, why: "The cheapest it has been relative to its growth: about 15× earnings while guiding $108B for the quarter, double last year. PEG 0.33, the best in the group.", risk: "The obvious target for AI rules and slower AI spending. Results on about 17 Nov will move it sharply either way." },
+  AVGO:  { name: "Broadcom", early: 265, why: "Designs custom AI chips for the big cloud companies. AI revenue +221%, and it expects about $115B of AI revenue in fiscal 2027. About 16.8× earnings, 41% below its high.", risk: "Debt from the VMware purchase; relies on a few big customers; reports on 9 Dec, the same day as the Fed decision." },
+  META:  { name: "Meta", early: 545, why: "The diversifier. Advertising revenue (+26%) doesn't depend on selling chips, and it has one of the narrowest outcome ranges in the scenarios.", risk: "Lowest expected return of the five (+4%). AI spending could push free cash flow negative (S&P now has a negative outlook). $9.9B legal charge in Q3." },
+};
+const ORDER = ["GOOGL", "TSM", "NVDA", "AVGO", "META"];
+const SPLIT = { NVDA: [44, 52, 44, 35], TSM: [56, 68, 56, 45], AVGO: [44, 52, 44, 35], GOOGL: [62, 75, 63, 50], META: [44, 53, 43, 35] };
+const rowsBy = Object.fromEntries(D.rows.map(r => [r.ticker, r]));
+const pct = (x, d = 0) => (x >= 0 ? "+" : "−") + Math.abs(x * 100).toFixed(d) + "%";
+const usd = x => "$" + Math.round(x).toLocaleString("en-US");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const NS = "http://www.w3.org/2000/svg";
+
+// Allocation strip
+document.getElementById("alloc").innerHTML = ORDER.map(t =>
+  `<div class="alloc-item"><span class="tkr">${t}</span><span class="amt">${usd(D.dollars[t])}</span><span class="nm">${PICKS[t].name}</span></div>`).join("");
+
+// Signals
+document.querySelector("#signals tbody").innerHTML = D.signals.map(s =>
+  `<tr><td>${esc(s.signal)}</td><td>${s.on ? '<span class="chip chip-good"><span class="dot"></span>On</span>' : '<span class="chip chip-bad"><span class="dot"></span>Not yet</span>'}</td><td class="small">${esc(s.note)}</td></tr>`).join("");
+
+// Screen
+const verdictChip = v => v === "SCORE" ? '<span class="chip chip-good"><span class="dot"></span>Scored</span>'
+  : v === "EXCLUDED" ? '<span class="chip chip-neutral"><span class="dot"></span>Excluded</span>'
+  : '<span class="chip chip-bad"><span class="dot"></span>Screened out</span>';
+document.querySelector("#screen tbody").innerHTML = D.screen.map(s =>
+  `<tr${D.picks.includes(s.ticker) ? ' class="pick"' : ''}><td class="mono">${s.ticker}</td><td class="num">${s.dd}%</td><td>${verdictChip(s.verdict)}</td><td class="small">${esc(s.reason)}</td></tr>`).join("");
+
+// Factors table
+document.querySelector("#factors tbody").innerHTML = D.rows.map(r => {
+  const p = r.parts;
+  return `<tr${D.picks.includes(r.ticker) ? ' class="pick"' : ''}><td class="mono">${r.ticker}</td><td class="num">$${r.price.toFixed(2)}</td><td class="num">${r.fwd_pe.toFixed(1)}×</td><td class="num">${pct(r.growth)}</td><td class="num">${r.peg.toFixed(2)}</td><td class="num">${p.valuation.toFixed(0)}</td><td class="num">${p.growth.toFixed(0)}</td><td class="num">${p.quality.toFixed(0)}</td><td class="num">${p.balance.toFixed(0)}</td><td class="num">${p.risk.toFixed(0)}</td><td class="num"><strong>${r.score.toFixed(1)}</strong></td></tr>`;
+}).join("");
+
+// Scenario table
+const SK = Object.keys(D.rows[0].scenarios);
+document.querySelector("#scen tbody").innerHTML = D.rows.map(r =>
+  `<tr${D.picks.includes(r.ticker) ? ' class="pick"' : ''}><td class="mono">${r.ticker}</td>${SK.map(k => `<td class="num">${pct(r.scenarios[k])}</td>`).join("")}<td class="num"><strong>${pct(r.ev6m, 1)}</strong></td></tr>`).join("");
+
+// Pick cards
+document.getElementById("picks").innerHTML = ORDER.map(t => {
+  const r = rowsBy[t], P = PICKS[t];
+  return `<article class="pick-card">
+    <div class="pick-top"><h3>${P.name} <span class="mono muted small">${t}</span></h3><span class="amt">${usd(D.dollars[t])}</span></div>
+    <p class="small">${esc(P.why)}</p>
+    <dl class="kv"><dt>Price 5 Nov</dt><dd>$${r.price.toFixed(2)}</dd><dt>From high</dt><dd>${r.dd}%</dd><dt>Forward P/E</dt><dd>${r.fwd_pe.toFixed(1)}×</dd><dt>Score</dt><dd>${r.score.toFixed(1)} / 100</dd><dt>6-mo expected</dt><dd>${pct(r.ev6m, 1)}</dd><dt>Buy early at</dt><dd>≤ $${P.early}</dd></dl>
+    <p class="risk"><strong>Main risk:</strong> ${esc(P.risk)}</p>
+  </article>`;
+}).join("");
+
+// Tranche table
+const sum = a => a.reduce((x, y) => x + y, 0);
+const tb = ORDER.map(t => `<tr><td class="mono">${t}</td>${SPLIT[t].map(v => `<td class="num">$${v}</td>`).join("")}<td class="num"><strong>$${sum(SPLIT[t])}</strong></td><td class="num">≤ $${PICKS[t].early}</td></tr>`);
+const col = i => sum(ORDER.map(t => SPLIT[t][i]));
+tb.push(`<tr><td><strong>Total</strong></td>${[0,1,2,3].map(i => `<td class="num"><strong>$${col(i)}</strong></td>`).join("")}<td class="num"><strong>$1,000</strong></td><td></td></tr>`);
+document.querySelector("#tranches tbody").innerHTML = tb.join("");
+
+// Timeline
+const TL = [
+  ["Fri 6 Nov", "October jobs report (forecast about 60k jobs, unemployment 4.2%)", false],
+  ["Tue 10 Nov", "TSMC October sales", false],
+  ["10–11 Nov", "Purchase 1: $250", true],
+  ["Thu 12 Nov", "Nebius Q3 results: make the hold-or-sell decision", false],
+  ["~Tue 17 Nov", "Nvidia Q3 FY27 results (date not yet confirmed)", false],
+  ["18–20 Nov", "Purchase 2: $300, unless a pause rule has triggered", true],
+  ["Wed 9 Dec", "Fed decision (65–83% odds of a hike) and Broadcom results", false],
+  ["10–11 Dec", "Purchase 3: $250", true],
+  ["Early Feb 2027", "Review: Q4 earnings and 2027 AI-spending guidance", false],
+  ["May 2027", "Six-month review", false],
+];
+document.getElementById("timeline").innerHTML = TL.map(([d, t, b]) =>
+  `<div class="tl-item${b ? " buy" : ""}"><span class="tl-date">${d}</span><span class="small">${b ? "<strong>" + esc(t) + "</strong>" : esc(t)}</span></div>`).join("");
+
+// MC table
+const mc = D.monte_carlo;
+document.querySelector("#mc tbody").innerHTML = [["All $1,000 on 10 Nov", mc.lump], ["Staged plan with $200 reserve", mc.tranche]].map(([n, s]) =>
+  `<tr><td>${n}</td><td class="num">${usd(s.p5)}</td><td class="num">${usd(s.median)}</td><td class="num">${usd(s.p95)}</td><td class="num">${(s.prob_loss * 100).toFixed(0)}%</td><td class="num">${(s.prob_loss_gt20 * 100).toFixed(1)}%</td></tr>`).join("");
+
+/* ---------- SVG helpers ---------- */
+function svg(w, h) { const s = document.createElementNS(NS, "svg"); s.setAttribute("viewBox", `0 0 ${w} ${h}`); s.setAttribute("role", "img"); return s; }
+function el(tag, attrs, parent, text) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; if (parent) parent.appendChild(e); return e; }
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function scale(d0, d1, r0, r1) { return v => r0 + (v - d0) / (d1 - d0) * (r1 - r0); }
+function barPath(x0, y, x1, h, r) { // rounded only at the data end
+  const right = x1 >= x0; const xe = x1, xs = x0; r = Math.min(r, Math.abs(x1 - x0), h / 2);
+  if (right) return `M${xs},${y} H${xe - r} Q${xe},${y} ${xe},${y + r} V${y + h - r} Q${xe},${y + h} ${xe - r},${y + h} H${xs} Z`;
+  return `M${xs},${y} H${xe + r} Q${xe},${y} ${xe},${y + r} V${y + h - r} Q${xe},${y + h} ${xe + r},${y + h} H${xs} Z`;
+}
+function tipOn(node, text) { node.dataset.tip = text; }
+
+/* Chart: SOX drawdowns */
+(function () {
+  const data = [["2018 trade war", -30], ["Now (5 Nov 2026)", -38], ["2022 rate hikes", -45], ["2008 financial crisis", -65], ["2000–02 dot-com", -82]];
+  const W = 640, rowH = 34, top = 10, left = 170, right = 60, H = top + data.length * rowH + 28;
+  const s = svg(W, H); s.setAttribute("aria-label", "Chip index peak-to-trough drawdowns compared");
+  const x = scale(0, -90, left, W - right);
+  [0, -20, -40, -60, -80].forEach(v => { el("line", { x1: x(v), x2: x(v), y1: top, y2: H - 24, class: v === 0 ? "zero" : "grid" }, s); el("text", { x: x(v), y: H - 8, "text-anchor": "middle" }, s, v + "%"); });
+  data.forEach(([n, v], i) => {
+    const y = top + i * rowH + 7, h = 20, now = n.startsWith("Now");
+    el("text", { x: left - 10, y: y + 14, "text-anchor": "end", class: now ? "lbl-strong" : "" }, s, n);
+    el("path", { d: barPath(x(0), y, x(v), h, 4), fill: now ? css("--series-1") : css("--series-neutral") }, s);
+    el("text", { x: x(v) + 6, y: y + 14, class: now ? "lbl-strong" : "" }, s, v + "%");
+    const hit = el("rect", { x: left, y: y - 5, width: W - left - right + 40, height: rowH, class: "hit" }, s);
+    tipOn(hit, `${n}\nPeak-to-trough: ${v}%` + (now ? "\nFrom the June 2026 record" : ""));
+  });
+  document.getElementById("chart-dd").appendChild(s);
+})();
+
+/* Chart: scores */
+(function () {
+  const rows = D.rows, W = 640, rowH = 34, top = 10, left = 130, right = 50, H = top + rows.length * rowH + 28;
+  const s = svg(W, H); s.setAttribute("aria-label", "Factor score by stock");
+  const x = scale(0, 100, left, W - right);
+  [0, 25, 50, 75, 100].forEach(v => { el("line", { x1: x(v), x2: x(v), y1: top, y2: H - 24, class: v === 0 ? "zero" : "grid" }, s); el("text", { x: x(v), y: H - 8, "text-anchor": "middle" }, s, v); });
+  rows.forEach((r, i) => {
+    const y = top + i * rowH + 7, pick = D.picks.includes(r.ticker);
+    el("text", { x: left - 10, y: y + 14, "text-anchor": "end", class: pick ? "lbl-strong" : "" }, s, `${r.name} ${r.ticker === "AMD" ? "(held)" : ""}`.trim());
+    el("path", { d: barPath(x(0), y, x(r.score), 20, 4), fill: pick ? css("--series-1") : css("--series-neutral") }, s);
+    el("text", { x: x(r.score) + 6, y: y + 14, class: "lbl-strong" }, s, r.score.toFixed(1));
+    const p = r.parts;
+    tipOn(el("rect", { x: left, y: y - 5, width: W - left, height: rowH, class: "hit" }, s),
+      `${r.name} · ${r.score.toFixed(1)}\nValuation ${p.valuation.toFixed(0)} · Growth ${p.growth.toFixed(0)}\nQuality ${p.quality.toFixed(0)} · Balance ${p.balance.toFixed(0)}\nRisk ${p.risk.toFixed(0)} · PEG ${r.peg.toFixed(2)}`);
+  });
+  document.getElementById("chart-score").appendChild(s);
+})();
+
+/* Chart: reverse DCF dumbbell */
+(function () {
+  const rows = D.rows, W = 640, rowH = 34, top = 10, left = 130, right = 30, H = top + rows.length * rowH + 28;
+  const s = svg(W, H); s.setAttribute("aria-label", "Implied versus expected growth");
+  const x = scale(-20, 60, left, W - right);
+  [-20, 0, 20, 40, 60].forEach(v => { el("line", { x1: x(v), x2: x(v), y1: top, y2: H - 24, class: v === 0 ? "zero" : "grid" }, s); el("text", { x: x(v), y: H - 8, "text-anchor": "middle" }, s, v + "%"); });
+  const blue = css("--series-1"), surf = css("--surface");
+  rows.forEach((r, i) => {
+    const cy = top + i * rowH + 17, a = r.implied_growth * 100, b = Math.min(r.growth, 0.6) * 100;
+    el("text", { x: left - 10, y: cy + 4, "text-anchor": "end", class: D.picks.includes(r.ticker) ? "lbl-strong" : "" }, s, r.name);
+    el("line", { x1: x(a), x2: x(b), y1: cy, y2: cy, stroke: css("--series-neutral"), "stroke-width": 2 }, s);
+    el("circle", { cx: x(b), cy, r: 6, fill: blue, stroke: surf, "stroke-width": 2 }, s);
+    el("circle", { cx: x(a), cy, r: 6, fill: surf, stroke: blue, "stroke-width": 2 }, s);
+    tipOn(el("rect", { x: left, y: cy - 17, width: W - left, height: rowH, class: "hit" }, s),
+      `${r.name}\nPrice needs: ${pct(r.implied_growth, 1)} / yr\nExpected next year: ${pct(r.growth)}${r.growth > 0.6 ? " (chart capped at 60%)" : ""}\nCushion: ${pct(r.growth - r.implied_growth)}`);
+  });
+  document.getElementById("chart-dcf").appendChild(s);
+})();
+
+/* Chart: scenario ranges */
+(function () {
+  const rows = D.rows, W = 640, rowH = 34, top = 10, left = 130, right = 30, H = top + rows.length * rowH + 28;
+  const s = svg(W, H); s.setAttribute("aria-label", "Six-month scenario ranges");
+  const x = scale(-80, 90, left, W - right);
+  [-80, -40, 0, 40, 80].forEach(v => { el("line", { x1: x(v), x2: x(v), y1: top, y2: H - 24, class: v === 0 ? "zero" : "grid" }, s); el("text", { x: x(v), y: H - 8, "text-anchor": "middle" }, s, (v > 0 ? "+" : "") + v + "%"); });
+  const blue = css("--series-1"), surf = css("--surface"), ink = css("--ink");
+  rows.forEach((r, i) => {
+    const cy = top + i * rowH + 17, v = Object.values(r.scenarios).map(z => z * 100);
+    el("text", { x: left - 10, y: cy + 4, "text-anchor": "end", class: D.picks.includes(r.ticker) ? "lbl-strong" : "" }, s, r.name);
+    el("rect", { x: x(v[0]), y: cy - 4, width: x(v[3]) - x(v[0]), height: 8, rx: 4, fill: css("--series-neutral") }, s);
+    [v[1], v[2]].forEach(z => el("circle", { cx: x(z), cy, r: 5, fill: blue, stroke: surf, "stroke-width": 2 }, s));
+    const e = x(r.ev6m * 100);
+    el("rect", { x: e - 5, y: cy - 5, width: 10, height: 10, fill: ink, stroke: surf, "stroke-width": 2, transform: `rotate(45 ${e} ${cy})` }, s);
+    tipOn(el("rect", { x: left, y: cy - 17, width: W - left, height: rowH, class: "hit" }, s),
+      `${r.name}\nDeep bear ${pct(v[0] / 100)} · Bear ${pct(v[1] / 100)}\nBase ${pct(v[2] / 100)} · Bull ${pct(v[3] / 100)}\nExpected ${pct(r.ev6m, 1)}`);
+  });
+  document.getElementById("chart-scen").appendChild(s);
+})();
+
+/* Chart: Monte Carlo ranges */
+(function () {
+  const data = [["All at once", mc.lump], ["Staged + reserve", mc.tranche]];
+  const W = 640, rowH = 44, top = 14, left = 130, right = 30, H = top + data.length * rowH + 30;
+  const s = svg(W, H); s.setAttribute("aria-label", "Simulated portfolio value after six months");
+  const x = scale(600, 1700, left, W - right);
+  [600, 800, 1000, 1200, 1400, 1600].forEach(v => { el("line", { x1: x(v), x2: x(v), y1: top, y2: H - 24, class: v === 1000 ? "zero" : "grid" }, s); el("text", { x: x(v), y: H - 8, "text-anchor": "middle" }, s, "$" + v.toLocaleString("en-US")); });
+  const ink = css("--ink"), surf = css("--surface");
+  data.forEach(([n, d], i) => {
+    const cy = top + i * rowH + 18;
+    el("text", { x: left - 10, y: cy + 4, "text-anchor": "end", class: "lbl-strong" }, s, n);
+    el("rect", { x: x(d.p5), y: cy - 6, width: x(d.p95) - x(d.p5), height: 12, rx: 6, fill: css("--series-neutral") }, s);
+    el("text", { x: x(d.p5), y: cy - 11, "text-anchor": "middle" }, s, usd(d.p5));
+    el("text", { x: x(d.p95), y: cy - 11, "text-anchor": "middle" }, s, usd(d.p95));
+    const m = x(d.median);
+    el("rect", { x: m - 6, y: cy - 6, width: 12, height: 12, fill: ink, stroke: surf, "stroke-width": 2, transform: `rotate(45 ${m} ${cy})` }, s);
+    tipOn(el("rect", { x: left, y: cy - 20, width: W - left, height: rowH, class: "hit" }, s),
+      `${n}\n5th pct ${usd(d.p5)} · median ${usd(d.median)}\n95th pct ${usd(d.p95)}\nChance of loss ${(d.prob_loss * 100).toFixed(0)}%\nChance of loss >20% ${(d.prob_loss_gt20 * 100).toFixed(1)}%`);
+  });
+  document.getElementById("chart-mc").appendChild(s);
+})();
+
+/* Tooltip */
+(function () {
+  const tip = document.getElementById("tip");
+  document.addEventListener("pointermove", e => {
+    const t = e.target.closest && e.target.closest("[data-tip]");
+    if (!t) { tip.hidden = true; return; }
+    tip.textContent = t.dataset.tip; tip.hidden = false;
+    const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+    let lx = e.clientX + pad, ly = e.clientY + pad;
+    if (lx + w > innerWidth - 8) lx = e.clientX - w - pad;
+    if (ly + h > innerHeight - 8) ly = e.clientY - h - pad;
+    tip.style.left = lx + "px"; tip.style.top = ly + "px";
+  });
+  document.addEventListener("pointerleave", () => { tip.hidden = true; });
+})();
+</script>
