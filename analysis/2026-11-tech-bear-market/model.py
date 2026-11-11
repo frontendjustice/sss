@@ -154,7 +154,9 @@ def scenario_returns(t, d):
         b = BUCKET[t]
         eps_key = "cyc" if d["cyclical"] >= 5 else b
         eps_6m = (d["price"] / d["fwd_pe"]) * (1 + d["growth"]) ** 0.5 * (1 + epsch[eps_key])
-        px = eps_6m * d["fwd_pe"] * mult[b]
+        # Targets are anchored to the reference multiple (5 Nov), so a rebound
+        # in price uses up upside instead of shifting every target higher.
+        px = eps_6m * d.get("pe_ref", d["fwd_pe"]) * mult[b]
         out[sname] = dict(p=p, ret=px / d["price"] - 1)
     ev = sum(v["p"] * v["ret"] for v in out.values())
     downside = sum(v["p"] * min(v["ret"], 0) for v in out.values())
@@ -236,9 +238,11 @@ SIGNALS = [
 ]
 
 
-def main():
+def main(inputs=None, signals=None, asof="2026-11-05 close", outfile="results.json"):
+    inputs = inputs or INPUTS
+    signals = signals or SIGNALS
     rows = []
-    for t, d in INPUTS.items():
+    for t, d in inputs.items():
         sc = scorecard(d)
         scen, ev, dn = scenario_returns(t, d)
         ig = implied_growth(d)
@@ -263,14 +267,15 @@ def main():
     mc = monte_carlo(weights, exp_ret)
     port_ev = sum(weights[t] * exp_ret[t] for t in weights)
 
-    result = dict(asof="2026-11-05 close", rows=rows, picks=[r["ticker"] for r in picks], dollars=dollars,
+    result = dict(asof=asof, rows=rows, picks=[r["ticker"] for r in picks], dollars=dollars,
                   portfolio_ev6m=port_ev, monte_carlo=mc,
                   screen=[dict(ticker=a, dd=b, verdict=c, reason=d) for a, b, c, d in SCREEN],
-                  signals=[dict(signal=a, on=b, note=c) for a, b, c in SIGNALS],
-                  signals_on=sum(1 for _, b, _ in SIGNALS if b), signals_total=len(SIGNALS),
+                  signals=[dict(signal=a, on=b, note=c) for a, b, c in signals],
+                  signals_on=sum(1 for _, b, _ in signals if b), signals_total=len(signals),
                   assumptions=dict(discount_rate=R, exit_pe=EXIT_PE, weights=WEIGHTS,
                                    scenario_probs={k: v[0] for k, v in SCENARIOS.items()}))
-    (OUT / "results.json").write_text(json.dumps(result, indent=2))
+    (OUT / outfile).write_text(json.dumps(result, indent=2))
+    print(f"=== {asof} -> {outfile}")
 
     # Console summary
     print(f"{'Tkr':6}{'Score':>7}{'PEG':>6}{'Impl g':>8}{'Est g':>7}{'EV6m':>8}{'Down':>8}  scenarios")
@@ -286,5 +291,36 @@ def main():
     print(f"Bottom signals on: {result['signals_on']}/{result['signals_total']}")
 
 
+# --------------------------------------------------------------------------
+# 11 Nov 2026 check-in: re-run at the 10 Nov close
+# Forward EPS is unchanged (no new estimates), so forward P/E moves with price.
+# NVDA: quality 5->4 and policy 4->5 for the CEO probe (board investigation,
+# FBI interest, reported $7.5B of chips reaching China, calls for tighter
+# export rules). Demand guidance is unchanged.
+# MU was not re-priced (no reliable 10 Nov quote found); it stays a control.
+# --------------------------------------------------------------------------
+UPDATE_1110 = {
+    # pe_ref 15.0 -> 13.5: a 10% governance discount on NVDA's scenario targets
+    "NVDA": dict(price=168.80, dd=-30, fwd_pe=13.95, quality=4, policy=5, pe_ref=13.5),
+    "TSM": dict(price=396.48, dd=-19, fwd_pe=18.57),
+    "AVGO": dict(price=331.98, dd=-33, fwd_pe=19.07),
+    "GOOGL": dict(price=286.14, dd=-29, fwd_pe=19.34),
+    "META": dict(price=641.39, dd=-18, fwd_pe=18.85),
+    "AMD": dict(price=515.21, dd=-22, fwd_pe=31.2),
+}
+SIGNALS_1110 = [
+    ("Sentiment washed out (CNN Fear & Greed <= 20)", True, "Hit 20 on 5 Nov; the low is in place even as fear eases"),
+    ("Volatility spike (VIX > 28)", True, "Spiked to 28.2 on 5 Nov"),
+    ("Capitulation-style breadth", True, "5 Nov washout; 29 of 30 SOX stocks rose on 9 Nov"),
+    ("Fundamentals still rising", True, "TSMC record October sales +59.7% y/y; CoreWeave beat and raised"),
+    ("Rates turning supportive", False, "Worse: hot Oct CPI, 10y ~5.0%, Dec hike fully priced, 10-15% odds of 50bp"),
+    ("Selling has stopped", True, "SOX ended an 8-day losing streak with a +6.9% day on 9 Nov"),
+    ("Price confirmation (follow-through rally)", False, "Partial: Nasdaq +~3% on 9 Nov was only day 2 of the rally; then -0.7% on 10 Nov"),
+    ("Policy clarity on AI / data centers", False, "Worse for Nvidia: Senate calls for tighter export rules after CEO probe"),
+]
+
+
 if __name__ == "__main__":
     main()
+    upd = {t: {**d, "pe_ref": d["fwd_pe"], **UPDATE_1110.get(t, {})} for t, d in INPUTS.items()}
+    main(upd, SIGNALS_1110, asof="2026-11-10 close", outfile="results_2026-11-10.json")

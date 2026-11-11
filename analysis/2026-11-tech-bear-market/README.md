@@ -6,7 +6,8 @@ sell-off, for a $1,000 low-risk, six-month buying plan.
 | File | What it is |
 |---|---|
 | `model.py` | Inputs and the six models: screen, factor scorecard, reverse DCF, scenarios, Monte Carlo, bottom-signal checklist |
-| `results.json` | Model output (written by `model.py`) |
+| `results.json` | Model output at the 5 Nov close (written by `model.py`) |
+| `results_2026-11-10.json` | Same models re-run at the 10 Nov close (11 Nov update) |
 | `report_template.html` | Report page; `build.py` injects `results.json` into it |
 | `report.html` | Built report (published as an artifact) |
 | `redteam.md` | Independent critique from a second AI model (Gemini) and what changed |
@@ -25,3 +26,9 @@ after its 12 Nov results.
 
 Research only, not personal financial advice. Inputs are approximate and come
 from news and data sites as of 5–6 Nov 2026.
+
+**11 Nov update:** the rebound and hotter inflation cut the basket's 6-month
+expected return from +11.5% to about +4%. Buy Alphabet ($62) now; wait for
+Nvidia's 17 Nov results; buy TSMC, Broadcom and Meta only at or below their
+buy zones ($360 / $310 / $570), with anything unbought deployed on 10–11 Dec.
+AMD's trim rule triggered at $515: sell about a third.

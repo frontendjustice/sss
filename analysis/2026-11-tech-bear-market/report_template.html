@@ -157,7 +157,7 @@ footer { border-top: 1px solid var(--rule); padding-top: 1.25rem; display: grid;
 
 <div class="page">
   <header>
-    <div class="eyebrow">Research note · Friday 6 Nov 2026 · prices at the 5 Nov close</div>
+    <div class="eyebrow">Research note · 6 Nov 2026 · updated 11 Nov 2026</div>
     <h1>Tech Sell-Off Buy Plan</h1>
     <p class="lede">Is it time to buy the 25 tech stocks now in bear-market territory, and which ones? This note looks at the macro picture, valuations, history and risk to give a buying plan for $1,000 of new money, plus what to do with your AMD and Nebius shares.</p>
     <div class="meta-row small muted">
@@ -166,9 +166,47 @@ footer { border-top: 1px solid var(--rule); padding-top: 1.25rem; display: grid;
     </div>
   </header>
 
+  <section class="verdict" aria-labelledby="u-h" id="update-1111">
+    <div class="verdict-head">
+      <span class="eyebrow" id="u-h">Update · Wednesday 11 Nov 2026 · prices at the 10 Nov close</span>
+      <span class="verdict-call">Slow down: buy Alphabet now, wait on the rest</span>
+    </div>
+    <div class="col stack">
+      <p>Three things changed since the first note. Chip stocks bounced hard: TSMC and Broadcom are up 12–14% and AMD 27%. Interest rates got worse: inflation came in hot and the 10-year yield reached 5%. And Nvidia now faces a board investigation into its CEO. Re-running the models at the new prices cuts the basket's six-month expected return from <strong>+11.5% to about +4%</strong>. Much of the cheap entry window of 5–6 Nov has already closed.</p>
+      <p>The plan still holds, but buy more selectively. Buy only what still has room, wait for Nvidia's 17 Nov results, and let the others come back to you. Whatever is still unbought by 10–11 Dec gets bought then anyway, so you don't end up waiting forever.</p>
+    </div>
+    <div class="table-wrap">
+      <table id="upd"><thead><tr><th>Ticker</th><th class="num">5 Nov</th><th class="num">10 Nov</th><th class="num">Move</th><th class="num">6-mo expected then → now</th><th class="num">Buy zone</th><th>Action</th></tr></thead><tbody></tbody></table>
+    </div>
+    <div class="two">
+      <div class="panel">
+        <h3>What changed</h3>
+        <ul class="clean small">
+          <li><strong>Jobs (6 Nov):</strong> +165,000 against about 60,000 expected; unemployment 4.1%; wages +0.4%.</li>
+          <li><strong>Inflation (10 Nov):</strong> October CPI +0.4% (0.3% expected). The 10-year yield is about 5.0%. A December hike is now fully priced in, with a 10–15% chance of a 0.5-point hike.</li>
+          <li><strong>Nvidia:</strong> the board is investigating reports that CEO Jensen Huang was targeted by a foreign intelligence effort and that a relationship helped about $7.5B of chips reach China. The FBI is looking into it, Senate leaders want tighter export rules, and one senator has called on him to resign. Nothing has been proven. The stock fell to $168.80.</li>
+          <li><strong>Good news:</strong> TSMC had record October sales, +59.7% from a year earlier and above estimates. CoreWeave beat and raised its outlook (backlog $132.5B). Google signed a Cloud deal with AMD.</li>
+          <li><strong>Chip index:</strong> +6.9% on 9 Nov, ending an 8-day losing streak. Bottom signals are now 5 of 8, up from 4.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>What to do</h3>
+        <ul class="clean small">
+          <li><strong>Today:</strong> buy Alphabet only ($62). Keep the other $188 of purchase 1 in cash.</li>
+          <li><strong>AMD:</strong> the trim rule has triggered. At $515 you're up 29%, and it now trades at about 31× next year's earnings with a slightly negative expected return. Sell about a third and keep the cash.</li>
+          <li><strong>Nebius:</strong> results are tomorrow before the open. The stock bounced to about $134–152 on the CoreWeave news. Use the same hold-or-sell rules as before.</li>
+          <li><strong>Nvidia:</strong> after the 17 Nov results, buy its first two slices ($96) if guidance is at or above about $108B, the CEO stays, and no charges are filed. If he's forced out or the company is charged, drop Nvidia and move its $175 to TSMC and Alphabet.</li>
+          <li><strong>TSMC, Broadcom, Meta:</strong> buy a slice when a stock closes inside its buy zone. Whatever is unbought gets bought on 10–11 Dec.</li>
+          <li><strong>Watch:</strong> the 10-year yield is about 5.0%. If it goes above 5.3%, pause everything.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="small muted">Model changes: scenario targets are now anchored to the 5 Nov valuation, so a price rebound uses up upside instead of raising every target. Nvidia's quality and policy-risk scores were cut and its targets carry a 10% governance discount. The staged plan now shows a 47% chance of loss and a 12% chance of losing more than 20% (it was 37% and 7%). The sections below are the original 5 Nov analysis.</p>
+  </section>
+
   <section class="verdict" aria-labelledby="v-h">
     <div class="verdict-head">
-      <span class="eyebrow" id="v-h">The decision</span>
+      <span class="eyebrow" id="v-h">Original decision · 6 Nov</span>
       <span class="verdict-call">Start buying, but in four steps</span>
     </div>
     <div class="col stack">
@@ -413,6 +451,16 @@ const pct = (x, d = 0) => (x >= 0 ? "+" : "−") + Math.abs(x * 100).toFixed(d) 
 const usd = x => "$" + Math.round(x).toLocaleString("en-US");
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const NS = "http://www.w3.org/2000/svg";
+
+// 11 Nov update table
+const U = /*__UPDATE__*/null;
+const ZONE = { GOOGL: [274, "Buy $62 today"], TSM: [360, "Wait for zone"], NVDA: [null, "Wait for 17 Nov results"], AVGO: [310, "Wait for zone"], META: [570, "Wait for zone"], AMD: [null, "Sell about a third"] };
+const uBy = Object.fromEntries(U.rows.map(r => [r.ticker, r]));
+document.querySelector("#upd tbody").innerHTML = ["GOOGL", "TSM", "NVDA", "AVGO", "META", "AMD"].map(t => {
+  const a = rowsBy[t], b = uBy[t], z = ZONE[t];
+  const chip = t === "GOOGL" ? "chip-good" : t === "AMD" ? "chip-warn" : "chip-neutral";
+  return `<tr${t !== "AMD" ? ' class="pick"' : ''}><td class="mono">${t}${t === "AMD" ? " (held)" : ""}</td><td class="num">$${a.price.toFixed(2)}</td><td class="num">$${b.price.toFixed(2)}</td><td class="num">${pct(b.price / a.price - 1, 1)}</td><td class="num">${pct(a.ev6m)} → <strong>${pct(b.ev6m)}</strong></td><td class="num">${z[0] ? "≤ $" + z[0] : "—"}</td><td><span class="chip ${chip}"><span class="dot"></span>${z[1]}</span></td></tr>`;
+}).join("");
 
 // Allocation strip
 document.getElementById("alloc").innerHTML = ORDER.map(t =>

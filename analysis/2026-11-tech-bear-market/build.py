@@ -8,5 +8,7 @@ here = Path(__file__).parent
 subprocess.run([sys.executable, str(here / "model.py")], check=True, stdout=subprocess.DEVNULL)
 data = json.loads((here / "results.json").read_text())
 tpl = (here / "report_template.html").read_text()
-(here / "report.html").write_text(tpl.replace("/*__DATA__*/null", json.dumps(data)))
+upd = json.loads((here / "results_2026-11-10.json").read_text())
+html = tpl.replace("/*__DATA__*/null", json.dumps(data)).replace("/*__UPDATE__*/null", json.dumps(upd))
+(here / "report.html").write_text(html)
 print("wrote report.html")
