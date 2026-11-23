@@ -1,0 +1,462 @@
+{
+  "asof": "2026-11-20 close",
+  "rows": [
+    {
+      "ticker": "TSM",
+      "name": "TSMC",
+      "price": 318.71,
+      "dd": -35,
+      "fwd_pe": 14.89,
+      "growth": 0.3,
+      "nov5": -9.5,
+      "peg": 0.5,
+      "parts": {
+        "valuation": 70.3,
+        "growth": 50.0,
+        "quality": 100.0,
+        "balance": 100.0,
+        "risk": 58.6,
+        "catalyst": 70
+      },
+      "score": 75.3,
+      "implied_growth": 0.05905160732818815,
+      "growth_cushion": 0.24094839267181184,
+      "ev6m": 0.2492444224883647,
+      "downside6m": -0.054350751087456586,
+      "scenarios": {
+        "Deep bear (recession / 2000-08 style)": -0.3935,
+        "Bear (2022-style rate squeeze)": -0.06,
+        "Base (choppy repair)": 0.3266,
+        "Bull (V-shaped recovery)": 0.6918
+      },
+      "catalyst": "October sales 10 Nov; Q4 guided +58% y/y"
+    },
+    {
+      "ticker": "GOOGL",
+      "name": "Alphabet",
+      "price": 264.0,
+      "dd": -35,
+      "fwd_pe": 17.85,
+      "growth": 0.15,
+      "nov5": -2.6,
+      "peg": 1.19,
+      "parts": {
+        "valuation": 51.5,
+        "growth": 25.0,
+        "quality": 100.0,
+        "balance": 75.0,
+        "risk": 81.7,
+        "catalyst": 70
+      },
+      "score": 67.7,
+      "implied_growth": 0.09816052482062299,
+      "growth_cushion": 0.05183947517937701,
+      "ev6m": 0.14151032374290756,
+      "downside6m": -0.03696821841871213,
+      "scenarios": {
+        "Deep bear (recession / 2000-08 style)": -0.2932,
+        "Bear (2022-style rate squeeze)": -0.0306,
+        "Base (choppy repair)": 0.1934,
+        "Bull (V-shaped recovery)": 0.4045
+      },
+      "catalyst": "Cloud +103%, $561B backlog; trades near 52-wk low $270.70"
+    },
+    {
+      "ticker": "AMD",
+      "name": "AMD",
+      "price": 424.32,
+      "dd": -36,
+      "fwd_pe": 25.71,
+      "growth": 0.6,
+      "nov5": -13.0,
+      "peg": 0.43,
+      "parts": {
+        "valuation": 51.6,
+        "growth": 100.0,
+        "quality": 75.0,
+        "balance": 75.0,
+        "risk": 37.0,
+        "catalyst": 70
+      },
+      "score": 65.0,
+      "implied_growth": 0.1812956357050337,
+      "growth_cushion": 0.41870436429496627,
+      "ev6m": 0.19905180412424953,
+      "downside6m": -0.10018498476526694,
+      "scenarios": {
+        "Deep bear (recession / 2000-08 style)": -0.5359,
+        "Bear (2022-style rate squeeze)": -0.1864,
+        "Base (choppy repair)": 0.2656,
+        "Bull (V-shaped recovery)": 0.7719
+      },
+      "catalyst": "Q4 guide $17B; 2027 revenue growth >80% guided"
+    },
+    {
+      "ticker": "AVGO",
+      "name": "Broadcom",
+      "price": 304.65,
+      "dd": -38,
+      "fwd_pe": 18.43,
+      "growth": 0.33,
+      "nov5": -12.2,
+      "peg": 0.56,
+      "parts": {
+        "valuation": 64.2,
+        "growth": 55.0,
+        "quality": 100.0,
+        "balance": 50.0,
+        "risk": 46.3,
+        "catalyst": 70
+      },
+      "score": 64.6,
+      "implied_growth": 0.10520604379644105,
+      "growth_cushion": 0.22479395620355896,
+      "ev6m": 0.03633888332502744,
+      "downside6m": -0.10473749815620087,
+      "scenarios": {
+        "Deep bear (recession / 2000-08 style)": -0.4969,
+        "Bear (2022-style rate squeeze)": -0.2202,
+        "Base (choppy repair)": 0.1005,
+        "Bull (V-shaped recovery)": 0.4034
+      },
+      "catalyst": "FQ4 earnings 9 Dec (guided $21.7B AI revenue)"
+    },
+    {
+      "ticker": "NVDA",
+      "name": "Nvidia",
+      "price": 125.53,
+      "dd": -48,
+      "fwd_pe": 9.3,
+      "growth": 0.45,
+      "nov5": -14.0,
+      "peg": 0.21,
+      "parts": {
+        "valuation": 71.6,
+        "growth": 75.0,
+        "quality": 25.0,
+        "balance": 100.0,
+        "risk": 28.5,
+        "catalyst": 70
+      },
+      "score": 58.4,
+      "implied_growth": -0.036093799742324184,
+      "growth_cushion": 0.4860937997423242,
+      "ev6m": 0.536274405133017,
+      "downside6m": -0.025419801318447722,
+      "scenarios": {
+        "Deep bear (recession / 2000-08 style)": -0.2542,
+        "Bear (2022-style rate squeeze)": 0.156,
+        "Base (choppy repair)": 0.6314,
+        "Bull (V-shaped recovery)": 1.0805
+      },
+      "catalyst": "Q3 FY27 earnings ~17 Nov (guided $108B revenue)"
+    },
+    {
+      "ticker": "META",
+      "name": "Meta",
+      "price": 560.84,
+      "dd": -28,
+      "fwd_pe": 16.5,
+      "growth": 0.09,
+      "nov5": -5.9,
+      "peg": 1.83,
+      "parts": {
+        "valuation": 30.5,
+        "growth": 15.0,
+        "quality": 100.0,
+        "balance": 50.0,
+        "risk": 80.5,
+        "catalyst": 70
+      },
+      "score": 57.0,
+      "implied_growth": 0.08102309662176066,
+      "growth_cushion": 0.008976903378239337,
+      "ev6m": 0.12043091568571546,
+      "downside6m": -0.04274873964710175,
+      "scenarios": {
+        "Deep bear (recession / 2000-08 style)": -0.3062,
+        "Bear (2022-style rate squeeze)": -0.0485,
+        "Base (choppy repair)": 0.1713,
+        "Bull (V-shaped recovery)": 0.3786
+      },
+      "catalyst": "Ad revenue +26%; 2027 EPS est. ~$34"
+    },
+    {
+      "ticker": "MU",
+      "name": "Micron",
+      "price": 656.39,
+      "dd": -48,
+      "fwd_pe": 5.5,
+      "growth": 0.05,
+      "nov5": -17.5,
+      "peg": 1.1,
+      "parts": {
+        "valuation": 37.0,
+        "growth": 8.3,
+        "quality": 50.0,
+        "balance": 75.0,
+        "risk": 11.9,
+        "catalyst": 70
+      },
+      "score": 37.6,
+      "implied_growth": -0.132217831118967,
+      "growth_cushion": 0.182217831118967,
+      "ev6m": -0.09135164082853243,
+      "downside6m": -0.1999949176371184,
+      "scenarios": {
+        "Deep bear (recession / 2000-08 style)": -0.7182,
+        "Bear (2022-style rate squeeze)": -0.462,
+        "Base (choppy repair)": -0.0317,
+        "Bull (V-shaped recovery)": 0.4346
+      },
+      "catalyst": "Record FY26 ($133B rev) - classic peak-cycle setup"
+    }
+  ],
+  "picks": [
+    "TSM",
+    "GOOGL",
+    "AVGO",
+    "META"
+  ],
+  "dollars": {
+    "TSM": 275,
+    "GOOGL": 300,
+    "AVGO": 200,
+    "META": 225
+  },
+  "portfolio_ev6m": 0.14536004600146404,
+  "monte_carlo": {
+    "lump": {
+      "mean": 1145.1555520057502,
+      "median": 1112.0754875458783,
+      "p5": 757.8414841912246,
+      "p95": 1644.098918322392,
+      "prob_loss": 0.32595,
+      "prob_loss_gt20": 0.0785,
+      "median_worst_point": 906.4644097299076
+    },
+    "tranche": {
+      "mean": 1108.4538154837796,
+      "median": 1089.1192470143446,
+      "p5": 810.5468004960992,
+      "p95": 1476.3327164687178,
+      "prob_loss": 0.31925,
+      "prob_loss_gt20": 0.045
+    },
+    "reserve_used": 0.1887
+  },
+  "screen": [
+    {
+      "ticker": "SNDK",
+      "dd": -66,
+      "verdict": "FAIL",
+      "reason": "Deep NAND cycle; -22% on 5 Nov; peak-earnings risk"
+    },
+    {
+      "ticker": "ARM",
+      "dd": -64,
+      "verdict": "FAIL",
+      "reason": "Royalty miss on 4 Nov; still a premium multiple; 2nd-order AI play"
+    },
+    {
+      "ticker": "COIN",
+      "dd": -63,
+      "verdict": "EXCLUDED",
+      "reason": "Crypto-linked (your rule)"
+    },
+    {
+      "ticker": "NBIS",
+      "dd": -62,
+      "verdict": "FAIL",
+      "reason": "Loss-making, $16-25B capex, convertibles, 2 customers; earnings 12 Nov"
+    },
+    {
+      "ticker": "STX",
+      "dd": -60,
+      "verdict": "FAIL",
+      "reason": "Storage hardware cycle; high beta"
+    },
+    {
+      "ticker": "MRVL",
+      "dd": -59,
+      "verdict": "FAIL",
+      "reason": "-16% on 5 Nov; custom-silicon share risk vs AVGO"
+    },
+    {
+      "ticker": "NOW",
+      "dd": -57,
+      "verdict": "FAIL",
+      "reason": "Agentic AI threatens seat-based software pricing"
+    },
+    {
+      "ticker": "ORCL",
+      "dd": -56,
+      "verdict": "FAIL",
+      "reason": "$20B stock+bond raise, $125B+ debt, FCF negative to 2028, OpenAI concentration"
+    },
+    {
+      "ticker": "APP",
+      "dd": -54,
+      "verdict": "FAIL",
+      "reason": "Ad-tech, high volatility, governance/short-seller history"
+    },
+    {
+      "ticker": "CRCL",
+      "dd": -54,
+      "verdict": "EXCLUDED",
+      "reason": "Crypto-linked (your rule)"
+    },
+    {
+      "ticker": "SMCI",
+      "dd": -51,
+      "verdict": "FAIL",
+      "reason": "Accounting/governance history; thin server margins"
+    },
+    {
+      "ticker": "MU",
+      "dd": -48,
+      "verdict": "SCORE",
+      "reason": "Cheap (5-6x) but deep-cyclical - scored as a control"
+    },
+    {
+      "ticker": "DELL",
+      "dd": -47,
+      "verdict": "FAIL",
+      "reason": "-15% on 5 Nov; low-margin AI servers"
+    },
+    {
+      "ticker": "SPCX",
+      "dd": -47,
+      "verdict": "FAIL",
+      "reason": "New IPO: little trading history, very rich valuation"
+    },
+    {
+      "ticker": "QCOM",
+      "dd": -43,
+      "verdict": "FAIL",
+      "reason": "Handset revenue -26%, margin guide cut"
+    },
+    {
+      "ticker": "AVGO",
+      "dd": -41,
+      "verdict": "SCORE",
+      "reason": "Passes"
+    },
+    {
+      "ticker": "AMD",
+      "dd": -39,
+      "verdict": "SCORE",
+      "reason": "Passes (you already own it)"
+    },
+    {
+      "ticker": "HOOD",
+      "dd": -38,
+      "verdict": "EXCLUDED",
+      "reason": "Crypto-linked (your rule)"
+    },
+    {
+      "ticker": "GOOGL",
+      "dd": -32,
+      "verdict": "SCORE",
+      "reason": "Passes"
+    },
+    {
+      "ticker": "TSLA",
+      "dd": -32,
+      "verdict": "FAIL",
+      "reason": "Valuation rests on autonomy/robotics optionality; not low-risk"
+    },
+    {
+      "ticker": "PLTR",
+      "dd": -28,
+      "verdict": "FAIL",
+      "reason": "~95-120x forward earnings even after the drop"
+    },
+    {
+      "ticker": "TSM",
+      "dd": -28,
+      "verdict": "SCORE",
+      "reason": "Passes"
+    },
+    {
+      "ticker": "META",
+      "dd": -26,
+      "verdict": "SCORE",
+      "reason": "Passes"
+    },
+    {
+      "ticker": "CRWD",
+      "dd": -26,
+      "verdict": "FAIL",
+      "reason": "~150x+ forward earnings; software de-rating risk"
+    },
+    {
+      "ticker": "NVDA",
+      "dd": -25,
+      "verdict": "SCORE",
+      "reason": "Passes"
+    }
+  ],
+  "signals": [
+    {
+      "signal": "Sentiment washed out (CNN Fear & Greed <= 20)",
+      "on": true,
+      "note": "Second panic leg: S&P 500 -8.6% on the week, worst since Apr 2025"
+    },
+    {
+      "signal": "Volatility spike (VIX > 28)",
+      "on": true,
+      "note": "VIX ~34.5 on 20 Nov, up 86% on the week"
+    },
+    {
+      "signal": "Capitulation-style breadth",
+      "on": true,
+      "note": "All 30 SOX stocks fell; SOX -10.7% on 20 Nov, -42.5% from June peak"
+    },
+    {
+      "signal": "Fundamentals still rising",
+      "on": true,
+      "note": "Nvidia beat and guided $130B; TSMC record October; but Google TPU-cut report"
+    },
+    {
+      "signal": "Rates turning supportive",
+      "on": false,
+      "note": "December hike ~93-95% priced; 10y ~4.94%"
+    },
+    {
+      "signal": "Selling has stopped",
+      "on": false,
+      "note": "S&P 500 seven straight losses; Nasdaq -5.3% on 20 Nov"
+    },
+    {
+      "signal": "Price confirmation (follow-through rally)",
+      "on": false,
+      "note": "None yet"
+    },
+    {
+      "signal": "Policy clarity on AI / data centers",
+      "on": false,
+      "note": "SEC inquiry into Nvidia accounting; export-restriction worries"
+    }
+  ],
+  "signals_on": 4,
+  "signals_total": 8,
+  "assumptions": {
+    "discount_rate": 0.1,
+    "exit_pe": 18.0,
+    "weights": {
+      "valuation": 0.25,
+      "growth": 0.15,
+      "quality": 0.2,
+      "balance": 0.15,
+      "risk": 0.2,
+      "catalyst": 0.05
+    },
+    "scenario_probs": {
+      "Deep bear (recession / 2000-08 style)": 0.1,
+      "Bear (2022-style rate squeeze)": 0.25,
+      "Base (choppy repair)": 0.4,
+      "Bull (V-shaped recovery)": 0.25
+    }
+  }
+}

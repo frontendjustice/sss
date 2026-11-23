@@ -157,7 +157,7 @@ footer { border-top: 1px solid var(--rule); padding-top: 1.25rem; display: grid;
 
 <div class="page">
   <header>
-    <div class="eyebrow">Research note · 6 Nov 2026 · updated 11 Nov 2026</div>
+    <div class="eyebrow">Research note · 6 Nov 2026 · updated 23 Nov 2026</div>
     <h1>Tech Sell-Off Buy Plan</h1>
     <p class="lede">Is it time to buy the 25 tech stocks now in bear-market territory, and which ones? This note looks at the macro picture, valuations, history and risk to give a buying plan for $1,000 of new money, plus what to do with your AMD and Nebius shares.</p>
     <div class="meta-row small muted">
@@ -165,6 +165,45 @@ footer { border-top: 1px solid var(--rule); padding-top: 1.25rem; display: grid;
       <span>Already holds: AMD (cost $400) · Nebius (cost $200)</span>
     </div>
   </header>
+
+  <section class="verdict" aria-labelledby="u2-h" id="update-1123">
+    <div class="verdict-head">
+      <span class="eyebrow" id="u2-h">Update · Monday 23 Nov 2026 · prices at the 20 Nov close</span>
+      <span class="verdict-call">Nvidia is out. Buy TSMC, Alphabet and Meta now.</span>
+    </div>
+    <div class="col stack">
+      <p>Last week brought a second panic. The S&amp;P 500 fell 8.6%, its worst week since April 2025, and entered a correction. The Nasdaq wiped out its 2026 gain. The chip index fell 10.7% on Friday alone and is now 42.5% below its June peak, close to 2022's 45% low. Three rule triggers fired. Jensen Huang resigned as Nvidia's CEO, and Reuters reported an SEC inquiry into Nvidia's accounting. An analyst reported that Google cut 2027 orders for Broadcom-designed TPU chips by about 20% (unconfirmed). Nebius steered to the low end of its 2026 sales range and raised spending.</p>
+      <p>Prices are now below where we started on 5 Nov, while earnings estimates mostly held. The basket's six-month expected return rises to <strong>+14.5%</strong> (it was +4% on 10 Nov). In the simulation, the chance of losing more than 20% falls to <strong>about 4.5%</strong>.</p>
+    </div>
+    <div class="table-wrap">
+      <table id="upd2"><thead><tr><th>Ticker</th><th class="num">5 Nov</th><th class="num">20 Nov</th><th class="num">Move</th><th class="num">Score</th><th class="num">6-mo expected</th><th class="num">New target</th><th class="num">Buy now</th><th>Action</th></tr></thead><tbody></tbody></table>
+    </div>
+    <div class="two">
+      <div class="panel">
+        <h3>What happened</h3>
+        <ul class="clean small">
+          <li><strong>Nvidia:</strong> Q3 revenue $115.8B (+103%) and a Q4 guide of $130B, both well above expectations. But Huang resigned (Colette Kress is interim CEO), and on 20 Nov Reuters reported an SEC inquiry into its accounting. The stock fell 14% to $125.53.</li>
+          <li><strong>Broadcom:</strong> fell 12% to $304.65 on the Google TPU report. Neither company has confirmed it. Results are on 9 Dec.</li>
+          <li><strong>Nebius (12 Nov):</strong> Q3 revenue $980.8M beat estimates, but 2026 guidance moved to the low end and spending went up. The stock fell 16% that day and closed at $81.31 on 20 Nov.</li>
+          <li><strong>Macro:</strong> a December hike is about 93–95% priced in. The 10-year yield is about 4.94%, below the 5.3% pause line. The VIX is about 34.5.</li>
+          <li><strong>Anthropic:</strong> listed on 19 Nov, opened at $111.50, closed its first day near $97, then fell with the market.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>What to do</h3>
+        <ul class="clean small">
+          <li><strong>This week:</strong> buy TSMC $150, Meta $125 and Alphabet $100 ($375). All three are below their buy zones.</li>
+          <li><strong>Nvidia:</strong> dropped from the plan under the rule we set (CEO out, plus an accounting inquiry). The model says it is very cheap. An accounting inquiry means the earnings themselves are in question, which is risk your profile shouldn't take.</li>
+          <li><strong>Broadcom:</strong> hold off until its 9 Dec results confirm or deny the Google cut. If they hold up, buy $160 on 10–11 Dec.</li>
+          <li><strong>10–11 Dec:</strong> the final scheduled purchase. Alphabet $78, TSMC $70, Meta $55, plus Broadcom if cleared.</li>
+          <li><strong>Reserve $200:</strong> still waiting. Use it if the chip index closes near 7,200 (about 14% below Friday) or the basket is 20% below your purchase prices.</li>
+          <li><strong>Nebius:</strong> the sell rule triggered on 12 Nov. Sell on the next solid up day rather than into Friday's panic, and no later than 11 Dec.</li>
+          <li><strong>AMD:</strong> hold the remaining shares, don't add. A Hunterbrook report on 19 Nov raised a new China-firmware question.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="small muted">Model changes: prices at the 20 Nov close. Nvidia's forward EPS was raised for the $130B guide, but its quality score was cut to 2 and its targets carry a 20% discount; it is shown for reference only. Broadcom's forward EPS was cut 5% and its growth assumption lowered for the TPU report. The basket weights were re-run across the four remaining names. The 11 Nov update and the original analysis follow below.</p>
+  </section>
 
   <section class="verdict" aria-labelledby="u-h" id="update-1111">
     <div class="verdict-head">
@@ -451,6 +490,18 @@ const pct = (x, d = 0) => (x >= 0 ? "+" : "−") + Math.abs(x * 100).toFixed(d) 
 const usd = x => "$" + Math.round(x).toLocaleString("en-US");
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const NS = "http://www.w3.org/2000/svg";
+
+// 23 Nov update table
+const U2 = /*__UPDATE2__*/null;
+const u2By = Object.fromEntries(U2.rows.map(r => [r.ticker, r]));
+const PLAN2 = {
+  TSM: [150, "Buy now", "chip-good"], META: [125, "Buy now", "chip-good"], GOOGL: [100, "Buy now", "chip-good"],
+  AVGO: [0, "Wait for 9 Dec results", "chip-neutral"], NVDA: [0, "Dropped from plan", "chip-bad"], AMD: [0, "Hold, don't add", "chip-warn"],
+};
+document.querySelector("#upd2 tbody").innerHTML = ["TSM", "GOOGL", "META", "AVGO", "NVDA", "AMD"].map(t => {
+  const a = rowsBy[t], b = u2By[t], pl = PLAN2[t], tgt = U2.dollars[t];
+  return `<tr${U2.picks.includes(t) ? ' class="pick"' : ''}><td class="mono">${t}${t === "AMD" ? " (held)" : ""}</td><td class="num">$${a.price.toFixed(2)}</td><td class="num">$${b.price.toFixed(2)}</td><td class="num">${pct(b.price / a.price - 1, 1)}</td><td class="num">${b.score.toFixed(1)}</td><td class="num">${pct(b.ev6m)}</td><td class="num">${tgt ? usd(tgt) : "—"}</td><td class="num">${pl[0] ? usd(pl[0]) : "—"}</td><td><span class="chip ${pl[2]}"><span class="dot"></span>${pl[1]}</span></td></tr>`;
+}).join("");
 
 // 11 Nov update table
 const U = /*__UPDATE__*/null;

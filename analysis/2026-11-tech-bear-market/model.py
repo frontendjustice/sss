@@ -238,7 +238,7 @@ SIGNALS = [
 ]
 
 
-def main(inputs=None, signals=None, asof="2026-11-05 close", outfile="results.json"):
+def main(inputs=None, signals=None, asof="2026-11-05 close", outfile="results.json", exclude=("AMD", "MU")):
     inputs = inputs or INPUTS
     signals = signals or SIGNALS
     rows = []
@@ -254,7 +254,7 @@ def main(inputs=None, signals=None, asof="2026-11-05 close", outfile="results.js
 
     # Final basket: top 5 by score, excluding AMD (already held - adding more
     # would concentrate the portfolio further) and MU (cyclical control).
-    picks = [r for r in rows if r["ticker"] not in ("AMD", "MU")][:5]
+    picks = [r for r in rows if r["ticker"] not in exclude][:5]
     # Weights: score x inverse volatility, normalised, rounded to $25
     raw = {r["ticker"]: r["score"] / VOL[r["ticker"]] for r in picks}
     s = sum(raw.values())
@@ -320,7 +320,42 @@ SIGNALS_1110 = [
 ]
 
 
+# --------------------------------------------------------------------------
+# 23 Nov 2026 check-in: re-run at the 20 Nov close
+# Forward EPS held at the 5 Nov level except where noted, so forward P/E
+# moves with price; scenario targets stay anchored to the 5 Nov multiple.
+# NVDA: CEO resigned (~12 Nov) and Reuters reported an SEC accounting inquiry
+#   (20 Nov). Forward EPS raised to ~13.5 after the $130B Q4 guide, quality
+#   cut to 2 and targets given a 20% discount (pe_ref 12). Excluded from the
+#   basket under the plan's rule; kept here for reference only.
+# AVGO: analyst report (unconfirmed) that Google cut 2027 Broadcom TPU orders
+#   ~20%; forward EPS cut 5% and growth 40% -> 33%.
+# nov5 field now holds the 20 Nov one-day move (current volatility).
+# --------------------------------------------------------------------------
+UPDATE_1120 = {
+    "NVDA": dict(price=125.53, dd=-48, fwd_pe=9.3, growth=0.45, quality=2, policy=5, nov5=-14.0, pe_ref=12.0),
+    "TSM": dict(price=318.71, dd=-35, fwd_pe=14.89, nov5=-9.5),
+    "AVGO": dict(price=304.65, dd=-38, fwd_pe=18.43, growth=0.33, nov5=-12.2),
+    "GOOGL": dict(price=264.00, dd=-35, fwd_pe=17.85, nov5=-2.6),
+    "META": dict(price=560.84, dd=-28, fwd_pe=16.50, nov5=-5.9),
+    "AMD": dict(price=424.32, dd=-36, fwd_pe=25.71, nov5=-13.0),
+}
+SIGNALS_1120 = [
+    ("Sentiment washed out (CNN Fear & Greed <= 20)", True, "Second panic leg: S&P 500 -8.6% on the week, worst since Apr 2025"),
+    ("Volatility spike (VIX > 28)", True, "VIX ~34.5 on 20 Nov, up 86% on the week"),
+    ("Capitulation-style breadth", True, "All 30 SOX stocks fell; SOX -10.7% on 20 Nov, -42.5% from June peak"),
+    ("Fundamentals still rising", True, "Nvidia beat and guided $130B; TSMC record October; but Google TPU-cut report"),
+    ("Rates turning supportive", False, "December hike ~93-95% priced; 10y ~4.94%"),
+    ("Selling has stopped", False, "S&P 500 seven straight losses; Nasdaq -5.3% on 20 Nov"),
+    ("Price confirmation (follow-through rally)", False, "None yet"),
+    ("Policy clarity on AI / data centers", False, "SEC inquiry into Nvidia accounting; export-restriction worries"),
+]
+
+
 if __name__ == "__main__":
     main()
     upd = {t: {**d, "pe_ref": d["fwd_pe"], **UPDATE_1110.get(t, {})} for t, d in INPUTS.items()}
     main(upd, SIGNALS_1110, asof="2026-11-10 close", outfile="results_2026-11-10.json")
+    upd2 = {t: {**d, "pe_ref": d["fwd_pe"], **UPDATE_1120.get(t, {})} for t, d in INPUTS.items()}
+    main(upd2, SIGNALS_1120, asof="2026-11-20 close", outfile="results_2026-11-20.json",
+         exclude=("AMD", "MU", "NVDA"))
