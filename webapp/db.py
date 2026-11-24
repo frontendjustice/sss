@@ -189,7 +189,17 @@ def make_engine(url: str | None = None):
     else:
         engine = create_engine(url, pool_pre_ping=True, pool_size=5, max_overflow=5)
     Base.metadata.create_all(engine)
+    if engine.dialect.name == "postgresql":
+        lock_down(engine)
     return engine
+
+
+def lock_down(engine) -> None:
+    """Turn on row-level security for every app table, with no policies. Supabase's public Data API
+    then sees nothing in them, while the app (connecting as the tables' owner) is unaffected."""
+    with engine.begin() as conn:
+        for table in Base.metadata.sorted_tables:
+            conn.exec_driver_sql(f'ALTER TABLE "{table.name}" ENABLE ROW LEVEL SECURITY')
 
 
 class DbCache:
