@@ -179,3 +179,43 @@ def test_admin_users_plan_and_password_reset(app):
     assert settings["invite_code"] == "NEWCODE"
     assert TestClient(app.app).post("/api/signup", json={"email": "c@x.ng", "name": "Chi", "password": "password123",
                                                          "invite": "PHARM7"}).status_code == 400
+
+
+def test_interrupted_reading_resumes_and_retry(app):
+    adm, cid, mat = class_setup(app)
+    with app.Sessions() as db:                      # as if the server died mid-read
+        m = db.get(app.Material, mat["id"])
+        m.status, m.sections = "processing", []
+        db.commit()
+    note = adm.get(f"/api/courses/{cid}").json()["notes"][0]
+    assert note["status"] == "processing" and note["can_retry"] and note["progress"] is None
+    assert app.jobs.resume_unfinished() == 1
+    for _ in range(300):
+        if adm.get(f"/api/materials/{mat['id']}").json()["status"] == "ready":
+            break
+        time.sleep(0.02)
+    assert adm.get(f"/api/materials/{mat['id']}").json()["topics"]
+    with app.Sessions() as db:                      # a failed read can be retried by hand
+        db.get(app.Material, mat["id"]).status = "error"
+        db.commit()
+    job = wait(adm, adm.post(f"/api/materials/{mat['id']}/retry").json()["job_id"])
+    assert job["status"] == "done" and adm.get(f"/api/materials/{mat['id']}").json()["status"] == "ready"
+    s = client(app, "ada@x.ng", "Ada")
+    assert s.post(f"/api/materials/{mat['id']}/retry").status_code == 403   # only the owner/admin
+
+
+def test_keep_awake_pings_only_while_busy(app, monkeypatch):
+    pings = []
+    monkeypatch.setattr(app.jobs, "keepalive_url", "https://example.test")
+    import webapp.jobs as jobs_mod
+    monkeypatch.setattr(jobs_mod.urllib.request, "urlopen", lambda url, timeout=0: pings.append(url) or type("R", (), {"read": lambda self: b""})())
+    monkeypatch.setattr(jobs_mod.time, "sleep", lambda s: (_ for _ in ()).throw(StopIteration) if len(sleeps) >= 2 else sleeps.append(s))
+    sleeps = []
+    app.jobs.state["x"] = {"status": "running", "kind": "process", "created": time.time()}
+    try:
+        app.jobs._keep_awake()
+    except StopIteration:
+        pass
+    assert pings == ["https://example.test/healthz", "https://example.test/healthz"]
+    app.jobs.state["x"]["status"] = "done"
+    assert not app.jobs.busy()

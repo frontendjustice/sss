@@ -72,12 +72,37 @@ def _parse_json(text: str):
         raise ProviderError(f"model returned invalid JSON ({e.msg})") from None
 
 
+# Tried in this order. The Lite model is the last resort when the others are overloaded.
+GEMINI_MODELS = ["gemini-3.5-flash", "gemini-flash-latest", "gemini-2.5-flash", "gemini-3.5-flash-lite"]
+
+
+def thinking_config(model: str, budget: int = 0) -> dict:
+    """Gemini 2.5 models take a token budget (0 = off); newer ones take a level and reject budget 0."""
+    if "2.5" in model:
+        return {"thinkingBudget": budget}
+    return {"thinkingLevel": "minimal" if budget <= 0 else "low"}
+
+
+def _post_gemini(model: str, body: dict, headers: dict) -> dict:
+    """POST to Gemini; if the model refuses the minimal thinking level (aliases such as
+    gemini-flash-latest move between models), retry once with "low"."""
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+    try:
+        return _post(url, body, headers)
+    except ProviderError as e:
+        cfg = body.get("generationConfig", {}).get("thinkingConfig", {})
+        if e.fatal and cfg.get("thinkingLevel") == "minimal" and "thinking level" in str(e).lower():
+            body["generationConfig"]["thinkingConfig"] = {"thinkingLevel": "low"}
+            return _post(url, body, headers)
+        raise
+
+
 class Gemini:
     name = "gemini"
     BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 
     def __init__(self, models: list[str] | None = None, thinking_budget: int = 0):
-        self.models = models or ["gemini-3.5-flash", "gemini-flash-latest", "gemini-2.5-flash"]
+        self.models = models or list(GEMINI_MODELS)
         self.thinking_budget = thinking_budget
 
     def generate(self, model: str, system: str, user: str, schema: dict, max_output: int) -> Result:
@@ -90,10 +115,10 @@ class Gemini:
                 "responseSchema": schema,
                 "temperature": 0.7,
                 "maxOutputTokens": max_output,
-                "thinkingConfig": {"thinkingBudget": self.thinking_budget},
+                "thinkingConfig": thinking_config(model, self.thinking_budget),
             },
         }
-        data = _post(f"{self.BASE}/{model}:generateContent", body, headers)
+        data = _post_gemini(model, body, headers)
         cands = data.get("candidates") or []
         if not cands or not cands[0].get("content", {}).get("parts"):
             reason = cands[0].get("finishReason") if cands else data.get("promptFeedback", {}).get("blockReason")
@@ -110,10 +135,10 @@ def gemini_text(model: str, parts: list[dict], max_output: int, media_resolution
                 thinking_budget: int = 0) -> Result:
     """Plain-text answer from Gemini for mixed text/image parts (used for transcribing scans)."""
     headers = {"x-goog-api-key": os.environ["GEMINI_API_KEY"]} if os.environ.get("GEMINI_API_KEY") else {}
-    config = {"maxOutputTokens": max_output, "temperature": 0.1, "thinkingConfig": {"thinkingBudget": thinking_budget}}
+    config = {"maxOutputTokens": max_output, "temperature": 0.1, "thinkingConfig": thinking_config(model, thinking_budget)}
     if media_resolution:
         config["mediaResolution"] = media_resolution
-    data = _post(f"{Gemini.BASE}/{model}:generateContent", {"contents": [{"parts": parts}], "generationConfig": config}, headers)
+    data = _post_gemini(model, {"contents": [{"parts": parts}], "generationConfig": config}, headers)
     cands = data.get("candidates") or []
     if not cands or not cands[0].get("content", {}).get("parts"):
         raise ProviderError(f"empty response ({cands[0].get('finishReason') if cands else 'blocked'})")
@@ -188,7 +213,7 @@ def retrying(targets: list[tuple], request, pacer: Pacer, log=print, attempts: i
                 if e.fatal:
                     break
                 if attempt < attempts - 1:
-                    wait = min(e.retry_after or 5 * 2 ** attempt, 90)
+                    wait = min(e.retry_after or 8 * 2 ** attempt, 60)   # overloads usually clear within a minute
                     log(f"    retrying in {wait:.0f}s")
                     time.sleep(wait)
     raise ProviderError("all models failed:\n  " + "\n  ".join(errors[-6:]))

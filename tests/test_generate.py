@@ -200,3 +200,48 @@ def test_stretch_when_more_questions_requested(tmp_path):
     assert plan.planned == normal + 5 and "more than one angle" in plan.warnings[0]
     huge = make_plan(sections, 1000)
     assert huge.planned < 1000 and "without inventing facts" in huge.warnings[-1]
+
+
+def test_thinking_setting_matches_model():
+    from quizengine.providers import thinking_config
+    assert thinking_config("gemini-2.5-flash") == {"thinkingBudget": 0}
+    assert thinking_config("gemini-3.5-flash-lite") == {"thinkingLevel": "minimal"}
+    assert thinking_config("gemini-3.5-flash", 512) == {"thinkingLevel": "low"}
+
+
+def test_handwritten_file_skips_tesseract_after_two_pages(tmp_path, monkeypatch):
+    import pymupdf
+    from quizengine import ocr
+    from quizengine.extract import extract
+    doc = pymupdf.open()
+    for _ in range(5):   # image-only pages, like photos of handwritten notes
+        pix = pymupdf.Pixmap(pymupdf.csRGB, pymupdf.IRect(0, 0, 40, 40), False)
+        pix.set_rect(pix.irect, (230, 230, 230))
+        doc.new_page(width=595, height=842).insert_image(pymupdf.Rect(50, 50, 500, 700), pixmap=pix)
+    doc.save(tmp_path / "photos.pdf")
+    checked = []
+    monkeypatch.setattr(ocr, "tesseract_available", lambda: True)
+    monkeypatch.setattr(ocr, "tesseract_page", lambda src, n, h: (checked.append(n), ([], {"words": 0, "mean_conf": 0.0,
+                                                                                         "share_confident": 0.0}))[1])
+    sent = []
+    monkeypatch.setattr(ocr, "_call", lambda batch, *a: (sent.extend(batch), {n: f"# Page {n}\n- point" for n in batch})[1])
+    logs = []
+    stats = ocr.transcribe(extract(tmp_path / "photos.pdf"), cache_dir=tmp_path / "c", log=logs.append)
+    assert checked == [1, 2] and sent == [1, 2, 3, 4, 5] and stats.gemini_pages == 5
+    assert any("skipping the printed-text check for the other 3" in l for l in logs)
+    assert any("Reading pages 1–4 of 5 with Gemini" in l for l in logs)
+
+
+def test_minimal_thinking_refused_retries_with_low(monkeypatch):
+    from quizengine import providers
+    sent = []
+
+    def fake_post(url, body, headers, timeout=180):
+        sent.append(dict(body["generationConfig"]["thinkingConfig"]))
+        if body["generationConfig"]["thinkingConfig"].get("thinkingLevel") == "minimal":
+            raise ProviderError("HTTP 400: Thinking level MINIMAL is not supported for this model.", fatal=True)
+        return {"candidates": [{"content": {"parts": [{"text": "ok"}]}}], "usageMetadata": {}, "modelVersion": "x"}
+
+    monkeypatch.setattr(providers, "_post", fake_post)
+    assert providers.gemini_text("gemini-flash-latest", [{"text": "hi"}], 10).items == "ok"
+    assert sent == [{"thinkingLevel": "minimal"}, {"thinkingLevel": "low"}]

@@ -41,6 +41,7 @@ DEFAULTS = {"daily_limit": "5", "upload_limit": "3"}   # per free student per da
 engine = make_engine()
 Sessions = sessionmaker(engine, expire_on_commit=False)
 jobs = Jobs(Sessions, lambda: [Gemini(), Groq()])
+jobs.resume_unfinished()   # uploads whose reading was cut off by a restart carry on
 app = FastAPI(title="Quiz Builder", docs_url=None, redoc_url=None)
 
 
@@ -264,7 +265,12 @@ def delete_course(cid: int, user: User = Depends(me), db: Session = Depends(get_
 
 
 def _material_json(m: Material, user: User, full: bool = False) -> dict:
+    job = jobs.material_job(m.id) if m.status == "processing" else None
+    progress = None
+    if job:
+        progress = job["log"][-1].strip() if job["log"] else ("Waiting in the queue…" if job["status"] == "queued" else "Starting…")
     out = {"id": m.id, "name": m.name, "title": m.title, "course_id": m.course_id, "shared": m.visibility == "class",
+           "progress": progress, "can_retry": m.status == "error" or (m.status == "processing" and not job),
            "mine": m.owner_id == user.id, "status": m.status, "error": m.error, "pages": m.pages,
            "created": m.created, "words": (m.report or {}).get("words", 0),
            "topics": [{"id": s["id"], "title": " › ".join(s["path"]), "pages": s["pages"],
@@ -337,6 +343,17 @@ def material_text(mid: int, user: User = Depends(me), db: Session = Depends(get_
     m = _material(db, user, mid)
     return {"title": m.title, "sections": [{"id": s["id"], "title": " › ".join(s["path"]), "pages": s["pages"],
                                             "paragraphs": s["paragraphs"]} for s in m.sections or []]}
+
+
+@app.post("/api/materials/{mid}/retry")
+def retry_material(mid: int, user: User = Depends(me), db: Session = Depends(get_db)):
+    m = _material(db, user, mid, edit=True)
+    job = jobs.material_job(m.id)
+    if not job:
+        m.status, m.error = "processing", None
+        db.commit()
+        job = jobs.submit("process", user.id, material_id=m.id)
+    return {"job_id": job["id"]}
 
 
 @app.delete("/api/materials/{mid}")

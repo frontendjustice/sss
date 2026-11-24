@@ -24,7 +24,7 @@ from pathlib import Path
 
 from .cache import as_cache
 from .extract import Document, Line, markdown_lines
-from .providers import Pacer, ProviderError, gemini_text, retrying
+from .providers import GEMINI_MODELS, Pacer, ProviderError, gemini_text, retrying
 
 PROMPT_VERSION = "2"
 RESOLUTIONS = {"low": "MEDIA_RESOLUTION_LOW", "medium": "MEDIA_RESOLUTION_MEDIUM", "high": "MEDIA_RESOLUTION_HIGH"}
@@ -47,6 +47,7 @@ TESS_DPI = 300
 TESS_MIN_WORDS = 25
 TESS_MIN_MEAN_CONF = 80.0
 TESS_MIN_SHARE_CONFIDENT = 0.75   # share of words read at >= 80% confidence
+TESS_PROBE_PAGES = 2   # if this many pages in a row fail, the file is handwritten: skip Tesseract for the rest
 
 
 @dataclass
@@ -123,7 +124,7 @@ def transcribe(doc: Document, models: list[str] | None = None, resolution: str =
     """Fill in text for every scanned page of `doc` (a PDF), in place."""
     if resolution not in RESOLUTIONS:
         raise ValueError(f"resolution must be one of: {', '.join(RESOLUTIONS)}")
-    models = models or ["gemini-3.5-flash", "gemini-flash-latest", "gemini-2.5-flash"]
+    models = models or list(GEMINI_MODELS)
     stats = OcrStats(failed=[])
     pages = {p.number: p for p in doc.pages if p.scanned}
     if not pages:
@@ -146,15 +147,22 @@ def transcribe(doc: Document, models: list[str] | None = None, resolution: str =
 
     if todo and use_tesseract:
         if tesseract_available():
-            still = []
-            for n in todo:
+            still, failed_in_a_row = [], 0
+            for i, n in enumerate(todo):
+                if failed_in_a_row >= TESS_PROBE_PAGES:
+                    log(f"  Pages look handwritten — skipping the printed-text check for the other {len(todo) - i}")
+                    still.extend(todo[i:])
+                    break
+                log(f"  Checking page {n} of {len(doc.pages)} for printed text…")
                 lines, info = tesseract_page(doc.source, n, pages[n].height)
                 if tesseract_ok(info):
                     pages[n].lines, pages[n].raw_text = lines, "\n".join(l.text for l in lines)
                     pages[n].scanned, pages[n].transcribed = False, True
                     stats.tesseract_pages += 1
+                    failed_in_a_row = 0
                 else:
                     still.append(n)
+                    failed_in_a_row += 1
             if stats.tesseract_pages:
                 log(f"  {stats.tesseract_pages} page(s) read by Tesseract (printed text, no tokens)")
             if still:
@@ -166,7 +174,8 @@ def transcribe(doc: Document, models: list[str] | None = None, resolution: str =
     pacer = Pacer(per_minute)
     batches = [todo[i:i + pages_per_call] for i in range(0, len(todo), pages_per_call)]
     for batch in batches:
-        log(f"  transcribing page(s) {', '.join(map(str, batch))}…")
+        span = f"{batch[0]}–{batch[-1]}" if len(batch) > 1 else str(batch[0])
+        log(f"  Reading page{'s' if len(batch) > 1 else ''} {span} of {len(doc.pages)} with Gemini…")
         texts = _call(batch, images, models, resolution, pacer, stats, log)
         missing = [n for n in batch if not texts.get(n, "").strip()]
         for n in missing if len(batch) > 1 else []:  # the model skipped a page marker: retry that page alone

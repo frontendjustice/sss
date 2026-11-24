@@ -233,8 +233,9 @@ routes.course = async id => {
     <h2>Notes</h2>
     ${c.notes.map(n => `<div class="card">
       <div class="row between"><b>${esc(n.title)}</b><span>${n.shared ? `<span class="badge">Class library</span>` : `<span class="badge flag">Private</span>`}</span></div>
-      <p class="meta">${n.status === "ready" ? `${n.pages} page${n.pages === 1 ? "" : "s"} · ${n.topics.length} topic${n.topics.length === 1 ? "" : "s"} · ${n.words.toLocaleString()} words` : n.status === "error" ? `<span class="err">Couldn't read: ${esc(n.error)}</span>` : "Reading… (scanned or handwritten pages take a minute)"}</p>
-      <div class="row">${n.status === "ready" ? `<button class="btn small ghost" data-read="${n.id}">Read</button>` : ""}${n.mine || (ME.is_admin && n.shared) ? `<button class="link danger" data-delnote="${n.id}">Delete</button>` : ""}</div></div>`).join("") || `<div class="empty">No notes yet.</div>`}
+      <p class="meta">${n.status === "ready" ? `${n.pages} page${n.pages === 1 ? "" : "s"} · ${n.topics.length} topic${n.topics.length === 1 ? "" : "s"} · ${n.words.toLocaleString()} words` : n.status === "error" ? `<span class="err">Couldn't read: ${esc(n.error)}</span>` : n.progress ? `⏳ ${esc(n.progress)}` : "Reading stopped before it finished. Tap Retry."}</p>
+      ${n.status === "processing" && !n.can_retry ? `<p class="meta">Handwritten or scanned pages take a few minutes. You can leave this page; it carries on.</p>` : ""}
+      <div class="row">${n.status === "ready" ? `<button class="btn small ghost" data-read="${n.id}">Read</button>` : ""}${n.can_retry && (n.mine || (ME.is_admin && n.shared)) ? `<button class="btn small" data-retry="${n.id}">Retry</button>` : ""}${n.mine || (ME.is_admin && n.shared) ? `<button class="link danger" data-delnote="${n.id}">Delete</button>` : ""}</div></div>`).join("") || `<div class="empty">No notes yet.</div>`}
     <div class="panel">
       <b>Upload notes</b><p class="meta">PDF (typed, scanned or handwritten), Word or text, up to 25 MB.${ME.usage.upload_limit !== null ? ` ${Math.max(0, ME.usage.upload_limit - ME.usage.uploads)} upload(s) left today.` : ""}</p>
       <input type="file" id="upFile" accept=".pdf,.docx,.txt,.md">
@@ -250,6 +251,9 @@ routes.course = async id => {
   if ($("delCourse")) $("delCourse").onclick = async () => { if (confirm("Delete this course? Its notes and quizzes stay in the library without a course.")) { await api(`/api/courses/${c.id}`, {method: "DELETE"}); location.hash = "#/courses"; } };
   document.querySelectorAll("[data-read]").forEach(b => b.onclick = () => location.hash = `#/notes/${b.dataset.read}`);
   document.querySelectorAll("[data-delnote]").forEach(b => b.onclick = async () => { if (confirm("Delete these notes?")) { await api(`/api/materials/${b.dataset.delnote}`, {method: "DELETE"}); route(); } });
+  document.querySelectorAll("[data-retry]").forEach(b => b.onclick = async () => { b.disabled = true; b.textContent = "Restarting…"; try { await api(`/api/materials/${b.dataset.retry}/retry`, {method: "POST"}); } catch (e) { toast(e.message); } refreshCourse(c.id); });
+  // keep progress up to date while files are being read (without jumping to the top of the page)
+  if (c.notes.some(n => n.status === "processing" && !n.can_retry)) setTimeout(() => refreshCourse(c.id), 4000);
   $("upBtn").onclick = async () => {
     const f = $("upFile").files[0]; if (!f) return toast("Choose a file first");
     const fd = new FormData(); fd.append("file", f); fd.append("course_id", c.id); fd.append("shared", !!($("upShared") && $("upShared").checked));
@@ -258,6 +262,14 @@ routes.course = async id => {
     catch (e) { showErr($("upErr"), e); $("upBtn").disabled = false; }
   };
 };
+
+async function refreshCourse(id) {
+  if (location.hash !== `#/course/${id}` || ($("upBtn") && $("upBtn").disabled) || document.activeElement && (document.activeElement.tagName === "TEXTAREA" || ["text", "number", "email", "password"].includes(document.activeElement.type))) {
+    if (location.hash === `#/course/${id}`) setTimeout(() => refreshCourse(id), 4000);
+    return;
+  }
+  const y = window.scrollY; await routes.course(id); window.scrollTo(0, y);
+}
 
 // ---------------- reader ----------------
 routes.notes = async id => {

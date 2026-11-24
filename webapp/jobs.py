@@ -1,12 +1,19 @@
 """Background work, one job at a time: reading an upload, generating a quiz, regenerating a
 question. A single worker keeps the shared Gemini key inside its per-minute limit; extra
-requests wait in the queue instead of failing."""
+requests wait in the queue instead of failing.
+
+Free hosts restart or sleep without warning, which kills a running job. So on start-up any
+upload still marked "processing" is queued again (pages already read are in the cache and are
+not paid for twice), and while jobs are waiting or running the server visits its own public
+address every few minutes so the host does not put it to sleep mid-job."""
 from __future__ import annotations
 
+import os
 import queue
 import tempfile
 import threading
 import time
+import urllib.request
 import uuid
 from datetime import date
 from pathlib import Path
@@ -27,7 +34,9 @@ from .db import Blob, DbCache, Material, Question, Quiz, Usage
 
 
 class Jobs:
-    def __init__(self, sessions, make_providers):
+    KEEPALIVE_SECONDS = 240
+
+    def __init__(self, sessions, make_providers, keepalive_url: str | None = None):
         self.sessions = sessions
         self.make_providers = make_providers   # replaced in tests with a fake model
         self.cache = DbCache(sessions)
@@ -35,6 +44,37 @@ class Jobs:
         self.queue: queue.Queue = queue.Queue()
         self.worker = threading.Thread(target=self._run, daemon=True)
         self.worker.start()
+        self.keepalive_url = keepalive_url if keepalive_url is not None else os.environ.get("RENDER_EXTERNAL_URL", "")
+        if self.keepalive_url:
+            threading.Thread(target=self._keep_awake, daemon=True).start()
+
+    def busy(self) -> bool:
+        return any(j["status"] in ("queued", "running") for j in self.state.values())
+
+    def _keep_awake(self):
+        while True:
+            time.sleep(self.KEEPALIVE_SECONDS)
+            if self.busy():
+                try:
+                    urllib.request.urlopen(self.keepalive_url.rstrip("/") + "/healthz", timeout=20).read()
+                except Exception:
+                    pass
+
+    def resume_unfinished(self) -> int:
+        """Queue again every upload still marked processing (its earlier job died with the server)."""
+        with self.sessions() as db:
+            stuck = db.scalars(select(Material).where(Material.status == "processing")).all()
+            pending = [(m.id, m.owner_id) for m in stuck if not self.material_job(m.id)]
+        for mid, owner in pending:
+            self.submit("process", owner, material_id=mid)
+        return len(pending)
+
+    def material_job(self, material_id: int) -> dict | None:
+        """The queued or running job reading this upload, if any."""
+        for j in self.state.values():
+            if j["kind"] == "process" and j.get("material_id") == material_id and j["status"] in ("queued", "running"):
+                return j
+        return None
 
     # ---------- queue ----------
 
@@ -42,7 +82,7 @@ class Jobs:
         jid = uuid.uuid4().hex[:12]
         waiting = sum(1 for j in self.state.values() if j["status"] in ("queued", "running"))
         job = {"id": jid, "kind": kind, "user_id": user_id, "status": "queued", "log": [], "result": None,
-               "error": None, "created": time.time()}
+               "error": None, "created": time.time(), "material_id": args.get("material_id")}
         if waiting:
             job["log"].append(f"Waiting for {waiting} other job(s) to finish…")
         self.state[jid] = job
