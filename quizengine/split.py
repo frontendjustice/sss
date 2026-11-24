@@ -35,6 +35,16 @@ class Section:
     id: str = ""
     questions: int = 0
     subheadings: list[str] = field(default_factory=list)
+    source: str = ""   # file name, when sections from several files are quizzed together
+
+    def to_json(self) -> dict:
+        return {"id": self.id, "path": self.path, "paragraphs": self.paragraphs, "pages": [self.page_start, self.page_end],
+                "subheadings": self.subheadings, "source": self.source}
+
+    @classmethod
+    def from_json(cls, d: dict) -> "Section":
+        return cls(list(d["path"]), list(d["paragraphs"]), d["pages"][0], d["pages"][1], d["id"],
+                   subheadings=list(d.get("subheadings", [])), source=d.get("source", ""))
 
     @property
     def title(self) -> str:

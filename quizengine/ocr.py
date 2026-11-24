@@ -15,7 +15,6 @@ import base64
 import csv
 import hashlib
 import io
-import json
 import re
 import shutil
 import statistics
@@ -23,6 +22,7 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
+from .cache import as_cache
 from .extract import Document, Line, markdown_lines
 from .providers import Pacer, ProviderError, gemini_text, retrying
 
@@ -118,7 +118,7 @@ def tesseract_ok(info: dict) -> bool:
 
 
 def transcribe(doc: Document, models: list[str] | None = None, resolution: str = "medium", pages_per_call: int = 4,
-               cache_dir: str | Path = ".quizcache", per_minute: float = 8, log=print,
+               cache_dir=".quizcache", per_minute: float = 8, log=print,
                use_tesseract: bool = True) -> OcrStats:
     """Fill in text for every scanned page of `doc` (a PDF), in place."""
     if resolution not in RESOLUTIONS:
@@ -128,17 +128,16 @@ def transcribe(doc: Document, models: list[str] | None = None, resolution: str =
     pages = {p.number: p for p in doc.pages if p.scanned}
     if not pages:
         return stats
-    cache = Path(cache_dir) / "ocr"
-    cache.mkdir(parents=True, exist_ok=True)
+    cache = as_cache(cache_dir)
     stats.pages = len(pages)
 
     images, keys, todo = {}, {}, []
     for n in sorted(pages):
         images[n] = render(doc.source, n)
         keys[n] = hashlib.sha256(images[n] + f"|{PROMPT_VERSION}|{resolution}".encode()).hexdigest()[:24]
-        hit = cache / f"{keys[n]}.json"
-        if hit.exists():
-            _apply(pages[n], json.loads(hit.read_text(encoding="utf-8"))["text"])
+        hit = cache.get(f"ocr/{keys[n]}")
+        if hit:
+            _apply(pages[n], hit["text"])
             stats.cached += 1
         else:
             todo.append(n)
@@ -177,8 +176,7 @@ def transcribe(doc: Document, models: list[str] | None = None, resolution: str =
             if not text:
                 stats.failed.append(n)
                 continue
-            (cache / f"{keys[n]}.json").write_text(json.dumps({"page": n, "text": text}, ensure_ascii=False),
-                                                  encoding="utf-8")
+            cache.set(f"ocr/{keys[n]}", {"page": n, "text": text})
             _apply(pages[n], text)
             stats.gemini_pages += 1
     return stats

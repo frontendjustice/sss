@@ -5,9 +5,13 @@ services:
     plan: free
     healthCheckPath: /healthz
     envVars:
-      - key: APP_PASSWORD      # you choose it; the site asks for it before anything loads
+      - key: DATABASE_URL        # Supabase "Session pooler" connection string, with your database password in it
         sync: false
-      - key: GEMINI_API_KEY    # from Google AI Studio
+      - key: ADMIN_EMAIL         # the email you will sign up with; that account becomes the class admin
         sync: false
-      - key: GROQ_API_KEY      # optional backup model
+      - key: CLASS_INVITE_CODE   # starting invite code for classmates (you can change it later in the app)
+        sync: false
+      - key: GEMINI_API_KEY      # from Google AI Studio
+        sync: false
+      - key: GROQ_API_KEY        # optional backup model
         sync: false

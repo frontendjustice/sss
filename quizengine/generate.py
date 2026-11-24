@@ -9,6 +9,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from . import prompt
+from .cache import as_cache
 from .check import all_none_share, check
 from .pipeline import Prepared
 from .providers import Pacer, ProviderError, call_with_fallback
@@ -42,13 +43,14 @@ class Generated:
                 "thinking": sum(c.thinking_tokens for c in live)}
 
 
-def generate(pr: Prepared, providers: list, difficulty: str = "mixed", cache_dir: str | Path = ".quizcache",
-             per_minute: float = 8, use_cache: bool = True, log=print, fact_check: bool = True) -> Generated:
+def generate(pr: Prepared, providers: list, difficulty: str = "mixed", cache_dir=".quizcache",
+             per_minute: float = 8, use_cache: bool = True, log=print, fact_check: bool = True,
+             avoid: list[str] | None = None) -> Generated:
+    """avoid: existing questions the model must not repeat (e.g. when replacing one question in a quiz)."""
     system = prompt.instruction(pr.profile, pr.course, difficulty, fact_check)
     schema = prompt.response_schema(fact_check)
     by_id = {s.id: s for s in pr.plan.sections}
-    cache = Path(cache_dir)
-    cache.mkdir(parents=True, exist_ok=True)
+    cache = as_cache(cache_dir)
     pacer = Pacer(per_minute)
     seen: set[str] = set()
     out = Generated([], [])
@@ -60,10 +62,9 @@ def generate(pr: Prepared, providers: list, difficulty: str = "mixed", cache_dir
         asked = sum(s.questions for s in sections)
         user = prompt.message(sections, labels, avoid)
         key = hashlib.sha256(json.dumps([prompt.PROMPT_VERSION, system, user]).encode()).hexdigest()[:24]
-        path = cache / f"{key}.json"
         usage = CallUsage(number, "", False, asked, 0)
-        if use_cache and path.exists():
-            saved = json.loads(path.read_text(encoding="utf-8"))
+        saved = cache.get(key) if use_cache else None
+        if saved:
             items, usage.model, usage.cached = saved["items"], saved["model"], True
             log(f"  {label}: {asked} questions — from cache")
         else:
@@ -80,7 +81,7 @@ def generate(pr: Prepared, providers: list, difficulty: str = "mixed", cache_dir
             usage.model = res.model
             usage.input_tokens, usage.output_tokens, usage.thinking_tokens = (
                 res.input_tokens, res.output_tokens, res.thinking_tokens)
-            path.write_text(json.dumps({"model": res.model, "items": items}, ensure_ascii=False), encoding="utf-8")
+            cache.set(key, {"model": res.model, "items": items})
 
         good, bad = check(items, set(labels.values()), pr.profile.options, seen)
         out.rejected.update(bad)
@@ -94,7 +95,8 @@ def generate(pr: Prepared, providers: list, difficulty: str = "mixed", cache_dir
             taken += 1
             out.questions.append({
                 "course": pr.course, "q": q["q"], "o": q["o"], "a": q["a"], "e": q["e"], "type": q["t"],
-                "source": {"file": Path(pr.source).name, "section": s.title, "pages": [s.page_start, s.page_end]},
+                "source": {"file": s.source or Path(pr.source).name, "section": s.title,
+                           "section_id": s.id, "pages": [s.page_start, s.page_end]},
                 "flag": _meaningful(q["f"]),
                 "ai": {"model": usage.model, "difficulty": difficulty, "profile": pr.profile.key},
             })
@@ -103,7 +105,7 @@ def generate(pr: Prepared, providers: list, difficulty: str = "mixed", cache_dir
 
     total = len(pr.plan.calls)
     for n, call in enumerate(pr.plan.calls, start=1):
-        run(n, f"call {n}/{total}", [by_id[i] for i in call.section_ids])
+        run(n, f"call {n}/{total}", [by_id[i] for i in call.section_ids], avoid)
 
     # One top-up round: ask again, only for the sections that came back short.
     short = [replace(s, questions=s.questions - len(accepted[s.id]))
@@ -111,8 +113,7 @@ def generate(pr: Prepared, providers: list, difficulty: str = "mixed", cache_dir
     missing = sum(s.questions for s in short)
     if missing and any(not c.error for c in out.calls):
         log(f"  {missing} question(s) missing (model wrote fewer or checks rejected some) — topping up…")
-        avoid = [q for s in short for q in accepted[s.id]]
-        run(len(out.calls) + 1, "top-up", short, avoid)
+        run(len(out.calls) + 1, "top-up", short, (avoid or []) + [q for s in short for q in accepted[s.id]])
     return out
 
 

@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E6B5C">
 <title>Quiz Builder</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,362 +13,510 @@
 @media (prefers-color-scheme:dark){:root{--bg:#0F1C1A;--surface:#172826;--ink:#E3EEEB;--muted:#9DB2AD;--line:#2A403C;--primary:#3FB39C;--primary-ink:#06221D;--soft:#1E3632;--ok:#5CC98A;--ok-soft:#173326;--bad:#F08A80;--bad-soft:#3A1C1A;--amber:#E7A94A;--amber-soft:#3A2B12}}
 *,*::before,*::after{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%}
-.wrap{max-width:680px;margin:0 auto;padding:20px 16px 56px}
-h1{font-family:"Literata",Georgia,serif;font-weight:600;font-size:2rem;line-height:1.1;margin:6px 0 4px}
-.rx{font-family:"Literata",Georgia,serif;color:var(--primary);font-style:italic}
+.wrap{max-width:680px;margin:0 auto;padding:18px 16px 96px}
+h1{font-family:"Literata",Georgia,serif;font-weight:600;font-size:1.75rem;line-height:1.15;margin:4px 0 6px}
+h1 .rx,.rx{font-family:"Literata",Georgia,serif;color:var(--primary);font-style:italic}
 h2{font-size:1rem;font-weight:700;margin:22px 0 10px}
-.lede{color:var(--muted);margin:0 0 18px}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
-.btn{appearance:none;border:0;border-radius:12px;background:var(--primary);color:var(--primary-ink);font:inherit;font-weight:700;padding:13px 18px;cursor:pointer;width:100%;font-size:1rem}
-.btn:disabled{opacity:.45;cursor:not-allowed}
+p{margin:0 0 10px}
+.lede,.meta{color:var(--muted)}.meta{font-size:.86rem}
+.panel,.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.card.click{cursor:pointer}
+.btn{appearance:none;border:0;border-radius:12px;background:var(--primary);color:var(--primary-ink);font:inherit;font-weight:700;padding:12px 16px;cursor:pointer;font-size:.98rem;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none}
+.btn.wide{width:100%}.btn:disabled{opacity:.45;cursor:not-allowed}
 .btn.ghost{background:transparent;color:var(--primary);border:1.5px solid var(--primary)}
-.btn.small{width:auto;padding:8px 14px;font-size:.9rem}
-.link{background:none;border:0;color:var(--primary);font:inherit;font-weight:600;cursor:pointer;padding:6px 0}
+.btn.small{padding:7px 12px;font-size:.88rem;border-radius:10px}
+.btn.danger{background:var(--bad);color:#fff}
+.link{background:none;border:0;color:var(--primary);font:inherit;font-weight:600;cursor:pointer;padding:4px 0}
 .link.danger{color:var(--bad)}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.row>.btn{flex:1}
-.meta{color:var(--muted);font-size:.87rem}
+.row.between{justify-content:space-between}.row>.grow{flex:1}
 .hidden{display:none!important}
-label.f{display:block;font-size:.88rem;font-weight:600;margin:12px 0 6px}
-input[type=text],input[type=number],select{width:100%;font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px}
-input:focus,select:focus{outline:none;border-color:var(--primary)}
+label.f{display:block;font-size:.86rem;font-weight:600;margin:12px 0 6px}
+input[type=text],input[type=email],input[type=password],input[type=number],select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px}
+textarea{resize:vertical;min-height:70px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary)}
+.check{display:flex;gap:10px;align-items:flex-start;padding:6px 0;cursor:pointer}.check input{margin-top:4px;accent-color:var(--primary)}
 .seg{display:flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden}
-.seg button{flex:1;border:0;background:var(--surface);color:var(--ink);font:inherit;padding:10px 8px;cursor:pointer;font-size:.92rem}
+.seg button{flex:1;border:0;background:var(--surface);color:var(--ink);font:inherit;padding:9px 8px;cursor:pointer;font-size:.9rem}
 .seg button[aria-pressed="true"]{background:var(--soft);color:var(--primary);font-weight:700}
-.drop{border:2px dashed var(--line);border-radius:14px;padding:18px;text-align:center;color:var(--muted);cursor:pointer}
-.drop b{color:var(--ink)}
-.mat{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:14px;margin-bottom:12px}
-.mat .name{font-weight:700;word-break:break-word}
-.set{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
-.set:first-of-type{border-top:0}
-.badge{display:inline-block;font-size:.75rem;font-weight:700;border-radius:6px;padding:2px 7px;margin-left:6px}
-.badge.flag{background:var(--amber-soft);color:var(--amber)}
-.badge.ai{background:var(--soft);color:var(--primary)}
-.log{font-family:ui-monospace,Menlo,monospace;font-size:.8rem;background:var(--bg);border-radius:10px;padding:10px;max-height:220px;overflow:auto;white-space:pre-wrap;margin-top:10px}
-table.t{width:100%;border-collapse:collapse;font-size:.88rem}
-table.t td{padding:8px 4px;border-bottom:1px solid var(--line);vertical-align:top}
-table.t td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
-.stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin:8px 0}
-.stat div{background:var(--bg);border-radius:10px;padding:8px 10px}
-.stat b{display:block;font-size:1.15rem;font-variant-numeric:tabular-nums}
-.stat span{color:var(--muted);font-size:.78rem}
-.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
-.bar{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin-bottom:18px}
-.bar i{display:block;height:100%;background:var(--primary);width:0;transition:width .25s}
-.stem{font-family:"Literata",Georgia,serif;font-size:1.15rem;line-height:1.55;margin:6px 0 16px}
+.badge{display:inline-block;font-size:.72rem;font-weight:700;border-radius:6px;padding:2px 7px;margin-left:6px;vertical-align:middle;background:var(--soft);color:var(--primary)}
+.badge.flag{background:var(--amber-soft);color:var(--amber)}.badge.bad{background:var(--bad-soft);color:var(--bad)}.badge.ok{background:var(--ok-soft);color:var(--ok)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px;margin:6px 0 12px}
+.stats div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 11px}
+.stats b{display:block;font-size:1.25rem;font-variant-numeric:tabular-nums}.stats span{color:var(--muted);font-size:.78rem}
+.meter{height:7px;background:var(--line);border-radius:6px;overflow:hidden;margin-top:6px}.meter i{display:block;height:100%;background:var(--primary)}
+.meter.ok i{background:var(--ok)}.meter.bad i{background:var(--bad)}
+.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px);z-index:20}
+.tabs a{flex:1;max-width:170px;text-align:center;padding:9px 4px 10px;color:var(--muted);text-decoration:none;font-size:.78rem;font-weight:600}
+.tabs a .i{display:block;font-size:1.25rem;line-height:1.2}
+.tabs a.on{color:var(--primary)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+.log{font-family:ui-monospace,Menlo,monospace;font-size:.78rem;background:var(--bg);border-radius:10px;padding:10px;max-height:200px;overflow:auto;white-space:pre-wrap;margin-top:10px}
+.bar{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin:4px 0 16px}.bar i{display:block;height:100%;background:var(--primary);transition:width .25s}
+.stem{font-family:"Literata",Georgia,serif;font-size:1.13rem;line-height:1.55;margin:6px 0 16px}
 .opts{display:flex;flex-direction:column;gap:10px}
 .opt{display:flex;gap:12px;align-items:flex-start;text-align:left;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:12px 14px;font:inherit;cursor:pointer;width:100%}
 .opt .k{flex:0 0 26px;height:26px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-size:.82rem;font-weight:700;color:var(--muted)}
-.opt[aria-pressed="true"]{border-color:var(--primary);background:var(--soft)}
-.opt[aria-pressed="true"] .k{background:var(--primary);border-color:var(--primary);color:var(--primary-ink)}
+.opt[aria-pressed="true"]{border-color:var(--primary);background:var(--soft)}.opt[aria-pressed="true"] .k{background:var(--primary);border-color:var(--primary);color:var(--primary-ink)}
 .opt.right{border-color:var(--ok);background:var(--ok-soft)}.opt.right .k{background:var(--ok);border-color:var(--ok);color:#fff}
 .opt.wrong{border-color:var(--bad);background:var(--bad-soft)}.opt.wrong .k{background:var(--bad);border-color:var(--bad);color:#fff}
 .opt:disabled{cursor:default}
-.fb{margin-top:16px;border-radius:12px;padding:14px;border-left:4px solid var(--ok);background:var(--ok-soft)}
-.fb.bad{border-color:var(--bad);background:var(--bad-soft)}
-.fb p{margin:4px 0 0}
-.flagnote{margin-top:10px;border-radius:10px;padding:10px 12px;background:var(--amber-soft);color:var(--ink);border-left:4px solid var(--amber);font-size:.93rem}
-.src{color:var(--muted);font-size:.82rem;margin-top:8px}
-.nav{display:flex;gap:10px;margin-top:20px}.nav .btn{flex:1}
-.score{font-family:"Literata",Georgia,serif;font-size:3.2rem;font-weight:600;line-height:1;margin:8px 0}
-.rq{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:14px;margin-bottom:12px}
-.rq.flagged{border-color:var(--amber)}
-.rq .s{font-family:"Literata",Georgia,serif;margin:4px 0 8px}
-.rq ol{margin:0 0 8px;padding-left:22px;font-size:.93rem}.rq li.ans{color:var(--ok);font-weight:700}
-.rq .e{color:var(--muted);font-size:.92rem}
-.err{color:var(--bad);font-weight:600;margin-top:10px}
-.foot{color:var(--muted);font-size:.8rem;margin-top:28px}
+.fb{margin-top:14px;border-radius:12px;padding:12px 14px;border-left:4px solid var(--ok);background:var(--ok-soft)}.fb.bad{border-color:var(--bad);background:var(--bad-soft)}
+.note{margin-top:10px;border-radius:10px;padding:9px 12px;background:var(--amber-soft);border-left:4px solid var(--amber);font-size:.92rem}
+.timer{font-variant-numeric:tabular-nums;font-weight:700;font-size:.88rem;border-radius:999px;padding:3px 10px;background:var(--soft);color:var(--primary)}
+.timer.warn{background:var(--amber-soft);color:var(--amber)}.timer.crit{background:var(--bad-soft);color:var(--bad)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:6px;margin:4px 0 14px}
+.grid button{height:34px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:.84rem;font-weight:600;cursor:pointer}
+.grid button.done{background:var(--soft);border-color:var(--primary)}.grid button.cur{outline:2.5px solid var(--primary);outline-offset:1px}
+.qcard ol{margin:6px 0 8px;padding-left:22px;font-size:.93rem}.qcard li.ans{color:var(--ok);font-weight:700}
+.qcard .s{font-family:"Literata",Georgia,serif;margin:4px 0 6px}
+.qcard.flagged{border-color:var(--amber)}
+.score{font-family:"Literata",Georgia,serif;font-size:3rem;font-weight:600;line-height:1;margin:6px 0}
+.reader h3{font-family:"Literata",Georgia,serif;font-size:1.15rem;margin:22px 0 8px}
+.reader p{font-family:"Literata",Georgia,serif;font-size:1.02rem;line-height:1.7}
+.err{color:var(--bad);font-weight:600;margin-top:8px}
+.toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:10px;font-size:.9rem;z-index:30;max-width:90%}
+.empty{text-align:center;color:var(--muted);padding:18px 8px}
+.pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 9px;font-size:.78rem;color:var(--muted);margin:2px 4px 2px 0}
 </style>
 </head>
 <body>
-<div class="wrap">
-
-<section id="home">
-  <h1>Quiz <span class="rx">Builder</span></h1>
-  <p class="lede">Upload lecture notes, PDFs or Word files and turn them into exam-style questions.</p>
-  <div class="panel">
-    <input id="file" type="file" accept=".pdf,.docx,.txt,.md" class="hidden">
-    <div class="drop" id="drop"><b>Upload notes</b><br><span class="meta">PDF (typed, scanned or handwritten), Word, text · up to 25 MB</span></div>
-    <div class="err hidden" id="uploadErr"></div>
-  </div>
-  <h2>Your materials</h2>
-  <div id="materials"><p class="meta">Loading…</p></div>
-  <p class="foot">Personal test version. Questions are AI-generated from your notes; check flagged ones before relying on them.</p>
-</section>
-
-<section id="make" class="hidden">
-  <div class="top"><button class="link" data-go="home">← Back</button></div>
-  <h1 style="font-size:1.6rem">New <span class="rx">quiz</span></h1>
-  <p class="lede" id="makeName"></p>
-  <div class="panel">
-    <label class="f">Exam type</label>
-    <div class="seg" id="profileSeg"></div>
-    <div id="pepFields">
-      <label class="f" for="pepCourse">Course</label>
-      <select id="pepCourse"></select>
-    </div>
-    <div id="ugFields" class="hidden">
-      <label class="f" for="ugCourse">Course</label>
-      <input id="ugCourse" type="text" placeholder="e.g. PCO 514 Autacoids">
-      <div class="row">
-        <div style="flex:1"><label class="f" for="ugLevel">Level</label><input id="ugLevel" type="text" placeholder="500L"></div>
-        <div style="flex:1"><label class="f" for="ugProg">Programme</label><input id="ugProg" type="text" placeholder="Pharm. D"></div>
-      </div>
-      <label class="f" for="ugInst">School</label>
-      <input id="ugInst" type="text" placeholder="e.g. UNIBEN">
-    </div>
-    <label class="f" for="qcount">Number of questions</label>
-    <input id="qcount" type="number" min="1" max="200" value="20" inputmode="numeric">
-    <label class="f">Difficulty</label>
-    <div class="seg" id="diffSeg"><button data-v="easy">Easy</button><button data-v="mixed" aria-pressed="true">Mixed</button><button data-v="hard">Hard</button></div>
-    <label class="f row" style="gap:8px;font-weight:500"><input type="checkbox" id="factCheck" checked> Fact-check answers against standard references</label>
-    <div class="row" style="margin-top:16px"><button class="btn ghost" id="planBtn">Preview plan</button><button class="btn" id="genBtn">Generate quiz</button></div>
-    <div class="err hidden" id="makeErr"></div>
-  </div>
-  <div class="panel hidden" id="progress">
-    <b id="progTitle">Working…</b>
-    <div class="log" id="log"></div>
-  </div>
-  <div id="planOut"></div>
-</section>
-
-<section id="quiz" class="hidden">
-  <div class="top"><button class="link" id="quitQuiz">✕ Quit</button><span class="meta" id="pos"></span></div>
-  <div class="bar"><i id="barFill"></i></div>
-  <div class="meta" id="qmeta"></div>
-  <div class="stem" id="stem"></div>
-  <div class="opts" id="opts"></div>
-  <div id="fb"></div>
-  <div class="nav"><button class="btn" id="next">Check</button></div>
-</section>
-
-<section id="results" class="hidden">
-  <p class="meta">Round complete</p>
-  <div class="score" id="score"></div>
-  <p class="lede" id="verdict"></p>
-  <div class="row" style="margin-bottom:16px"><button class="btn small" id="retryBtn">Retry the ones I missed</button><button class="btn small ghost" data-go="home">Back to materials</button></div>
-  <div id="missed"></div>
-</section>
-
-<section id="review" class="hidden">
-  <div class="top"><button class="link" data-go="home">← Back</button><span class="meta" id="revCount"></span></div>
-  <h1 style="font-size:1.5rem" id="revTitle"></h1>
-  <div class="stat" id="revStats"></div>
-  <div id="revWarn"></div>
-  <div class="row" style="margin:10px 0 14px">
-    <div class="seg" style="flex:1" id="revFilter"><button data-v="all" aria-pressed="true">All</button><button data-v="flag">Flagged</button></div>
-    <button class="btn small" id="revPractice">Practise</button>
-  </div>
-  <div id="revList"></div>
-  <button class="link danger" id="delSet">Delete this quiz</button>
-</section>
-
-</div>
+<div class="wrap" id="view"></div>
+<nav class="tabs hidden" id="tabs">
+  <a href="#/today" data-tab="today"><span class="i">☀</span>Today</a>
+  <a href="#/courses" data-tab="courses"><span class="i">📚</span>Courses</a>
+  <a href="#/practise" data-tab="practise"><span class="i">✎</span>Practise</a>
+  <a href="#/progress" data-tab="progress"><span class="i">📈</span>Progress</a>
+</nav>
 <script>
 const $ = id => document.getElementById(id);
-const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let PROFILES = [], MATERIALS = [], current = null, profileKey = "pep", difficulty = "mixed";
-let quiz = null, reviewSet = null, reviewFilter = "all";
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pct = (a, b) => b ? Math.round(100 * a / b) : 0;
+const when = t => { const d = (Date.now() / 1000 - t); return d < 60 ? "just now" : d < 3600 ? `${Math.round(d / 60)} min ago` : d < 86400 ? `${Math.round(d / 3600)} h ago` : new Date(t * 1000).toLocaleDateString(); };
+let ME = null, PROFILES = null, play = null, timerId = null;
 
 async function api(path, opts = {}) {
+  if (opts.json !== undefined) { opts.body = JSON.stringify(opts.json); opts.headers = {"Content-Type": "application/json"}; delete opts.json; }
   const r = await fetch(path, opts);
   const body = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(body.error || `Request failed (${r.status})`);
+  if (r.status === 401 && !path.startsWith("/api/login") && !path.startsWith("/api/signup")) { ME = null; location.hash = "#/login"; throw new Error("Please log in"); }
+  if (!r.ok) throw new Error(body.error || `Something went wrong (${r.status})`);
   return body;
 }
-function show(id) {
-  for (const s of ["home", "make", "quiz", "results", "review"]) $(s).classList.toggle("hidden", s !== id);
-  window.scrollTo(0, 0);
-}
-document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { show(b.dataset.go); if (b.dataset.go === "home") loadMaterials(); });
-
-// ---------- home ----------
-$("drop").onclick = () => $("file").click();
-$("file").onchange = async () => {
-  const f = $("file").files[0]; if (!f) return;
-  $("uploadErr").classList.add("hidden");
-  $("drop").innerHTML = `<b>Uploading ${esc(f.name)}…</b>`;
-  const fd = new FormData(); fd.append("file", f);
-  try { const m = await api("/api/materials", {method: "POST", body: fd}); await loadMaterials(); openMake(m.id); }
-  catch (e) { $("uploadErr").textContent = e.message; $("uploadErr").classList.remove("hidden"); }
-  $("drop").innerHTML = `<b>Upload notes</b><br><span class="meta">PDF (typed, scanned or handwritten), Word, text · up to 25 MB</span>`;
-  $("file").value = "";
-};
-
-async function loadMaterials() {
-  try { MATERIALS = await api("/api/materials"); }
-  catch (e) { $("materials").innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
-  if (!MATERIALS.length) { $("materials").innerHTML = `<p class="meta">Nothing yet. Upload your first notes above.</p>`; return; }
-  $("materials").innerHTML = MATERIALS.map(m => `
-    <div class="mat">
-      <div class="row" style="justify-content:space-between"><span class="name">${esc(m.name)}</span>
-        <span class="meta">${new Date(m.uploaded * 1000).toLocaleDateString()} · ${(m.size / 1024 / 1024).toFixed(1)} MB</span></div>
-      ${m.sets.map(s => `<div class="set"><div><div>${esc(s.title)}${s.flagged ? `<span class="badge flag">${s.flagged} flagged</span>` : ""}</div>
-        <div class="meta">${esc(s.course || "")} · ${esc(s.difficulty)} · ${new Date(s.created * 1000).toLocaleString()}</div></div>
-        <div class="row" style="flex-wrap:nowrap"><button class="btn small" data-practice="${s.id}">Practise</button><button class="btn small ghost" data-review="${s.id}">Review</button></div></div>`).join("")}
-      <div class="row" style="margin-top:10px"><button class="btn small" data-make="${m.id}">+ New quiz</button>
-        <button class="link danger" data-del="${m.id}" style="margin-left:auto">Delete</button></div>
-    </div>`).join("");
-  document.querySelectorAll("[data-make]").forEach(b => b.onclick = () => openMake(b.dataset.make));
-  document.querySelectorAll("[data-practice]").forEach(b => b.onclick = () => startQuiz(b.dataset.practice));
-  document.querySelectorAll("[data-review]").forEach(b => b.onclick = () => openReview(b.dataset.review));
-  document.querySelectorAll("[data-del]").forEach(b => b.onclick = async () => {
-    if (!confirm("Delete this file and all its quizzes?")) return;
-    await api(`/api/materials/${b.dataset.del}`, {method: "DELETE"}); loadMaterials();
-  });
-}
-
-// ---------- new quiz ----------
-function renderProfiles() {
-  $("profileSeg").innerHTML = PROFILES.map(p => `<button data-v="${p.key}" aria-pressed="${p.key === profileKey}">${p.key === "pep" ? "PEP" : "Undergraduate"}</button>`).join("");
-  $("profileSeg").querySelectorAll("button").forEach(b => b.onclick = () => { profileKey = b.dataset.v; renderProfiles(); });
-  $("pepFields").classList.toggle("hidden", profileKey !== "pep");
-  $("ugFields").classList.toggle("hidden", profileKey === "pep");
-  const pep = PROFILES.find(p => p.key === "pep");
-  if (pep && !$("pepCourse").options.length)
-    $("pepCourse").innerHTML = `<option value="">(no specific course)</option>` + Object.entries(pep.courses).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join("");
-}
-$("diffSeg").querySelectorAll("button").forEach(b => b.onclick = () => {
-  difficulty = b.dataset.v; $("diffSeg").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
-});
-function openMake(mid) {
-  current = MATERIALS.find(m => m.id === mid) || {id: mid, name: ""};
-  $("makeName").textContent = current.name;
-  $("progress").classList.add("hidden"); $("planOut").innerHTML = ""; $("makeErr").classList.add("hidden");
-  renderProfiles(); show("make");
-}
-function jobBody(mode) {
-  const ug = profileKey !== "pep";
-  return {material_id: current.id, mode, questions: Math.max(1, Math.min(200, +$("qcount").value || 20)),
-    profile: profileKey, difficulty, fact_check: $("factCheck").checked,
-    course: (ug ? $("ugCourse").value : $("pepCourse").value) || null,
-    level: ug ? $("ugLevel").value || null : null, programme: ug ? $("ugProg").value || null : null,
-    institution: ug ? $("ugInst").value || null : null};
-}
-$("planBtn").onclick = () => runJob("plan");
-$("genBtn").onclick = () => runJob("generate");
-async function runJob(mode) {
-  $("makeErr").classList.add("hidden"); $("planOut").innerHTML = "";
-  setBusy(true);
-  let job;
-  try { job = await api("/api/jobs", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(jobBody(mode))}); }
-  catch (e) { setBusy(false); $("makeErr").textContent = e.message; $("makeErr").classList.remove("hidden"); return; }
-  $("progress").classList.remove("hidden");
-  $("progTitle").textContent = mode === "plan" ? "Preparing the plan…" : "Generating your quiz…";
-  while (job.status === "running") {
+function toast(msg) { const t = document.createElement("div"); t.className = "toast"; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); }
+function view(html) { $("view").innerHTML = html; window.scrollTo(0, 0); }
+function showErr(el, e) { el.textContent = e.message || e; el.classList.remove("hidden"); }
+async function waitJob(id, logEl) {
+  while (true) {
+    const j = await api(`/api/jobs/${id}`);
+    if (logEl) { logEl.textContent = j.log.join("\n") || "Starting…"; logEl.scrollTop = logEl.scrollHeight; }
+    if (j.status === "done") return j;
+    if (j.status === "error") throw new Error(j.error);
     await new Promise(r => setTimeout(r, 1200));
-    try { job = await api(`/api/jobs/${job.id}`); } catch (e) { continue; }
-    $("log").textContent = job.log.join("\n"); $("log").scrollTop = $("log").scrollHeight;
   }
-  setBusy(false);
-  if (job.status === "error") { $("progTitle").textContent = "Stopped"; $("makeErr").textContent = job.error; $("makeErr").classList.remove("hidden"); return; }
-  $("progTitle").textContent = mode === "plan" ? "Plan ready" : "Quiz ready";
-  if (mode === "plan") renderPlan(job.result.report);
-  else { await loadMaterials(); openReview(job.result.set_id); }
 }
-function setBusy(b) { $("planBtn").disabled = $("genBtn").disabled = b; }
-function renderPlan(r) {
-  const t = r.tokens, o = r.ocr;
-  const saved = t.raw ? Math.round((1 - t.cleaned / t.raw) * 100) : 0;
-  $("planOut").innerHTML = `<div class="panel">
-    <b>${esc(r.source)}</b> <span class="meta">· ${r.pages} page${r.pages === 1 ? "" : "s"}</span>
-    ${o ? `<p class="meta">Scanned pages: ${o.tesseract_pages} read free by Tesseract, ${o.gemini_pages} by Gemini, ${o.cached} from cache.</p>` : ""}
-    <div class="stat"><div><b>${r.questions.planned}</b><span>questions planned</span></div>
-      <div><b>${r.calls.length}</b><span>model calls</span></div>
-      <div><b>~${(t.est_input_total).toLocaleString()}</b><span>tokens in (est.)</span></div>
-      <div><b>${saved}%</b><span>trimmed by cleaning</span></div></div>
-    ${r.warnings.map(w => `<p class="err">${esc(w)}</p>`).join("")}
-    ${r.skipped_sections.length ? `<p class="meta">Skipped: ${esc(r.skipped_sections.join(", "))}</p>` : ""}
-    <table class="t">${r.sections.map(s => `<tr><td><b>${esc(s.title)}</b><div class="meta">p.${s.pages[0]}${s.pages[1] !== s.pages[0] ? "–" + s.pages[1] : ""} · ${s.words} words</div><div class="meta">${esc(s.preview)}</div></td><td class="n">${s.questions} Q</td></tr>`).join("")}</table>
-  </div>`;
-}
+const meter = (p, cls = "") => `<div class="meter ${cls}"><i style="width:${p}%"></i></div>`;
 
-// ---------- practice ----------
-const PIN = /^\s*(all|none|any|both|neither)\s*(of (the|these|them)\b.*|the (above|options?)\.?)?\s*$|\bthe above\b/i;
-function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-function optionOrder(q) {
-  const idx = q.o.map((_, k) => k), pinned = idx.filter(k => PIN.test(q.o[k]));
-  return shuffle(idx.filter(k => !pinned.includes(k))).concat(pinned);
+// ---------------- router ----------------
+const routes = {};
+async function route() {
+  clearInterval(timerId);
+  const [name, ...args] = (location.hash.replace(/^#\//, "") || "today").split("/");
+  if (!ME && name !== "login") {
+    try { ME = await api("/api/me"); } catch (e) { location.hash = "#/login"; return; }
+  }
+  $("tabs").classList.toggle("hidden", !ME || name === "login" || name === "play");
+  document.querySelectorAll("#tabs a").forEach(a => a.classList.toggle("on", a.dataset.tab === ({course: "courses", notes: "courses", quiz: "courses", make: "courses", results: "practise"}[name] || name)));
+  try { await (routes[name] || routes.today)(...args); }
+  catch (e) { if (e.message !== "Please log in") view(`<p class="err">${esc(e.message)}</p><button class="link" onclick="history.back()">← Back</button>`); }
 }
-async function startQuiz(sid, only) {
-  const set = reviewSet && reviewSet.id === sid ? reviewSet : await api(`/api/sets/${sid}`);
-  const items = (only || set.questions.map((_, i) => i));
-  quiz = {set, ids: shuffle(items.slice()), i: 0, ans: {}, locked: {}, ord: {}};
-  quiz.ids.forEach(i => quiz.ord[i] = optionOrder(set.questions[i]));
-  show("quiz"); renderQ();
-}
-function renderQ() {
-  const id = quiz.ids[quiz.i], q = quiz.set.questions[id], ord = quiz.ord[id], a = quiz.ans[id], lock = quiz.locked[id];
-  $("pos").textContent = `${quiz.i + 1} of ${quiz.ids.length}`;
-  $("barFill").style.width = `${100 * quiz.i / quiz.ids.length}%`;
-  $("qmeta").innerHTML = esc(q.type || "") + `<span class="badge ai">AI</span>`;
-  $("stem").textContent = q.q;
-  $("opts").innerHTML = ord.map((k, pos) => {
-    let cls = ""; if (lock) { if (k === q.a) cls = "right"; else if (k === a) cls = "wrong"; }
-    return `<button class="opt ${cls}" data-k="${k}" aria-pressed="${!lock && a === k}" ${lock ? "disabled" : ""}><span class="k">${"ABCDE"[pos]}</span><span>${esc(q.o[k])}</span></button>`;
-  }).join("");
-  $("opts").querySelectorAll(".opt").forEach(b => b.onclick = () => { quiz.ans[id] = +b.dataset.k; renderQ(); });
-  $("fb").innerHTML = lock ? `<div class="fb ${a === q.a ? "" : "bad"}"><b>${a === q.a ? "Correct." : "Not quite. Answer: " + "ABCDE"[ord.indexOf(q.a)] + " – " + esc(q.o[q.a])}</b><p>${esc(q.e)}</p></div>
-    ${q.flag ? `<div class="flagnote"><b>⚠ Fact-check:</b> ${esc(q.flag)}</div>` : ""}
-    <div class="src">From ${esc(q.source.section)} · p.${q.source.pages[0]}${q.source.pages[1] !== q.source.pages[0] ? "–" + q.source.pages[1] : ""}</div>` : "";
-  const last = quiz.i === quiz.ids.length - 1;
-  $("next").textContent = lock ? (last ? "See results" : "Next") : (a === undefined ? "Skip" : "Check");
-}
-$("next").onclick = () => {
-  const id = quiz.ids[quiz.i];
-  if (!quiz.locked[id] && quiz.ans[id] !== undefined) { quiz.locked[id] = true; renderQ(); return; }
-  if (quiz.i < quiz.ids.length - 1) { quiz.i++; renderQ(); } else finish();
+window.addEventListener("hashchange", route);
+
+// ---------------- login / sign-up ----------------
+routes.login = async () => {
+  let mode = "login";
+  const draw = () => view(`
+    <h1 style="margin-top:24px">Quiz <span class="rx">Builder</span></h1>
+    <p class="lede">Turn your lecture notes into exam-style practice, with your class.</p>
+    <div class="panel">
+      <div class="seg" style="margin-bottom:8px"><button data-m="login" aria-pressed="${mode === "login"}">Log in</button><button data-m="signup" aria-pressed="${mode === "signup"}">Sign up</button></div>
+      <form id="authForm">
+        ${mode === "signup" ? `<label class="f">Your name</label><input type="text" id="aName" autocomplete="name" required>` : ""}
+        <label class="f">Email</label><input type="email" id="aEmail" autocomplete="email" required>
+        <label class="f">Password</label><input type="password" id="aPass" autocomplete="${mode === "signup" ? "new-password" : "current-password"}" required minlength="${mode === "signup" ? 8 : 1}">
+        ${mode === "signup" ? `<label class="f">Class invite code</label><input type="text" id="aCode" autocapitalize="characters" placeholder="Ask your class admin"><p class="meta" style="margin-top:6px">At least 8 characters for the password.</p>` : ""}
+        <button class="btn wide" style="margin-top:16px">${mode === "login" ? "Log in" : "Create account"}</button>
+        <div class="err hidden" id="aErr"></div>
+      </form>
+      ${mode === "login" ? `<p class="meta" style="margin-top:12px">Forgot your password? Ask your class admin to reset it.</p>` : ""}
+    </div>`);
+  draw();
+  const wire = () => {
+    document.querySelectorAll("[data-m]").forEach(b => b.onclick = () => { mode = b.dataset.m; draw(); wire(); });
+    $("authForm").onsubmit = async ev => {
+      ev.preventDefault();
+      try {
+        ME = mode === "login"
+          ? await api("/api/login", {method: "POST", json: {email: $("aEmail").value, password: $("aPass").value}})
+          : await api("/api/signup", {method: "POST", json: {email: $("aEmail").value, password: $("aPass").value, name: $("aName").value, invite: $("aCode").value}});
+        location.hash = "#/today";
+      } catch (e) { showErr($("aErr"), e); }
+    };
+  };
+  wire();
 };
-$("quitQuiz").onclick = () => { if (confirm("End this round? Checked answers will be scored.")) finish(); };
-function finish() {
-  const done = quiz.ids.filter(i => quiz.locked[i]), right = done.filter(i => quiz.ans[i] === quiz.set.questions[i].a);
-  const missed = quiz.ids.filter(i => !right.includes(i));
-  const pct = done.length ? Math.round(100 * right.length / done.length) : 0;
-  $("score").textContent = `${pct}%`;
-  $("verdict").textContent = `${right.length} of ${done.length} answered correctly` + (quiz.ids.length > done.length ? ` (${quiz.ids.length - done.length} skipped).` : ".");
-  $("retryBtn").classList.toggle("hidden", !missed.length);
-  $("retryBtn").onclick = () => startQuiz(quiz.set.id, missed);
-  $("missed").innerHTML = missed.length ? `<h2>To revisit</h2>` + missed.map(i => reviewCard(quiz.set.questions[i], i, false)).join("") : "";
-  show("results");
+
+// ---------------- today ----------------
+routes.today = async () => {
+  const t = await api("/api/today"); ME = t.user;
+  const u = ME.usage;
+  view(`
+    <div class="top"><h1>Hi, ${esc(ME.name.split(" ")[0])}</h1><a class="link" href="#/account">Account${ME.is_pro ? `<span class="badge ok">${ME.is_admin ? "Admin" : "Pro"}</span>` : ""}</a></div>
+    <div class="stats"><div><b>${t.streak}</b><span>day streak</span></div><div><b>${t.answered_today}</b><span>answered today</span></div>
+      <div><b>${u.generation_limit === null ? "∞" : Math.max(0, u.generation_limit - u.generations)}</b><span>new quizzes left today</span></div></div>
+    ${t.processing.map(m => `<div class="card"><b>Reading “${esc(m.title)}”…</b><p class="meta">It will appear in its course when ready.</p></div>`).join("")}
+    <div class="row">
+      <div class="card click grow" data-pool="missed"><b>${t.missed}</b> missed question${t.missed === 1 ? "" : "s"}<p class="meta">Practise the ones you got wrong</p></div>
+      <div class="card click grow" data-pool="later"><b>${t.later}</b> to check later<p class="meta">Questions you starred</p></div>
+    </div>
+    ${t.new_class_quizzes.length ? `<h2>New in your class library</h2>${t.new_class_quizzes.map(quizCard).join("")}` : ""}
+    <h2>Recent rounds</h2>
+    ${t.recent.length ? t.recent.map(roundRow).join("") : `<div class="empty">No practice yet. Open <a href="#/courses">Courses</a> to start.</div>`}
+  `);
+  document.querySelectorAll("[data-pool]").forEach(c => c.onclick = () => startRound({pool: c.dataset.pool}));
+  wireQuizCards();
+};
+const roundRow = r => `<div class="card"><div class="row between"><b>${esc(r.title)}</b><span class="badge ${pct(r.correct, r.answered) >= 70 ? "ok" : pct(r.correct, r.answered) >= 50 ? "" : "bad"}">${pct(r.correct, r.answered)}%</span></div>
+  <p class="meta">${r.mode === "exam" ? "Exam" : "Practice"} · ${r.correct} of ${r.answered} right${r.total > r.answered ? ` · ${r.total - r.answered} skipped` : ""} · ${when(r.created)}</p></div>`;
+
+// ---------------- courses ----------------
+routes.courses = async () => {
+  const cs = await api("/api/courses");
+  view(`
+    <h1>Your <span class="rx">courses</span></h1>
+    ${cs.length ? cs.map(c => `<div class="card click" data-course="${c.id}">
+      <div class="row between"><b>${esc(c.code)}</b>${c.shared ? `<span class="badge">Class</span>` : `<span class="badge flag">Personal</span>`}</div>
+      <div>${esc(c.title)}</div>
+      <p class="meta">${c.materials} note file${c.materials === 1 ? "" : "s"} · ${c.quizzes} quiz${c.quizzes === 1 ? "" : "zes"} · ${c.practised} of ${c.questions} questions practised${c.accuracy !== null ? ` · ${c.accuracy}% right` : ""}</p>
+      ${meter(pct(c.practised, c.questions))}</div>`).join("") : `<div class="empty">No courses yet.</div>`}
+    <div class="panel">
+      <b>Add a course</b>
+      <div class="row" style="margin-top:8px"><input type="text" id="cCode" placeholder="Code, e.g. PCO 514" style="flex:1;min-width:120px"><input type="text" id="cTitle" placeholder="Title, e.g. Autacoids" style="flex:2;min-width:160px"></div>
+      ${ME.is_admin ? `<label class="check"><input type="checkbox" id="cShared" checked> Class course (everyone in the class sees it)</label>` : `<p class="meta" style="margin-top:6px">Personal courses are private to you. Class courses are added by the admin.</p>`}
+      <button class="btn small" id="cAdd" style="margin-top:8px">Add course</button><div class="err hidden" id="cErr"></div>
+    </div>`);
+  document.querySelectorAll("[data-course]").forEach(c => c.onclick = () => location.hash = `#/course/${c.dataset.course}`);
+  $("cAdd").onclick = async () => {
+    try { const c = await api("/api/courses", {method: "POST", json: {code: $("cCode").value, title: $("cTitle").value, shared: !!($("cShared") && $("cShared").checked)}}); location.hash = `#/course/${c.id}`; }
+    catch (e) { showErr($("cErr"), e); }
+  };
+};
+
+const quizCard = q => `<div class="card">
+  <div class="row between"><b>${esc(q.title)}</b><span>${q.shared ? `<span class="badge">Class</span>` : ""}${q.flagged ? `<span class="badge flag">${q.flagged} flagged</span>` : ""}</span></div>
+  <p class="meta">${q.count}${q.requested && q.requested !== q.count ? ` of ${q.requested}` : ""} questions · ${esc(q.difficulty || "")} · by ${esc(q.by)} · ${when(q.created)}${q.accuracy !== null ? ` · ${q.practised} practised, ${q.accuracy}% right` : ""}</p>
+  <div class="row"><button class="btn small" data-practise="${q.id}">Practise</button><button class="btn small ghost" data-exam="${q.id}" data-n="${q.count}">Exam</button><button class="btn small ghost" data-review="${q.id}">Review</button></div></div>`;
+function wireQuizCards() {
+  document.querySelectorAll("[data-practise]").forEach(b => b.onclick = () => startRound({quiz_id: +b.dataset.practise}));
+  document.querySelectorAll("[data-exam]").forEach(b => b.onclick = () => startRound({quiz_id: +b.dataset.exam, mode: "exam", minutes: Math.max(5, Math.round(+b.dataset.n * 1.2))}));
+  document.querySelectorAll("[data-review]").forEach(b => b.onclick = () => location.hash = `#/quiz/${b.dataset.review}`);
 }
 
-// ---------- review ----------
-function reviewCard(q, i, canDelete) {
-  return `<div class="rq ${q.flag ? "flagged" : ""}">
-    <div class="meta">${esc(q.source.section)} · p.${q.source.pages[0]}${q.flag ? `<span class="badge flag">flagged</span>` : ""}</div>
-    <div class="s">${esc(q.q)}</div>
-    <ol type="A">${q.o.map((o, k) => `<li class="${k === q.a ? "ans" : ""}">${esc(o)}</li>`).join("")}</ol>
-    <div class="e">${esc(q.e)}</div>
-    ${q.flag ? `<div class="flagnote"><b>⚠ Fact-check:</b> ${esc(q.flag)}</div>` : ""}
-    ${canDelete ? `<button class="link danger" data-delq="${i}">Remove question</button>` : ""}</div>`;
-}
-async function openReview(sid) {
-  reviewSet = await api(`/api/sets/${sid}`); reviewFilter = "all"; renderReview(); show("review");
-}
-function renderReview() {
-  const s = reviewSet, qs = s.questions, flagged = qs.filter(q => q.flag).length, u = s.usage.tokens;
-  $("revTitle").textContent = s.title;
-  $("revCount").textContent = new Date(s.created * 1000).toLocaleString();
-  const req = s.requested || qs.length;
-  $("revWarn").innerHTML = (s.warnings || []).map(w => `<p class="meta">ℹ ${esc(w)}</p>`).join("");
-  $("revStats").innerHTML = `<div><b>${qs.length}${req !== qs.length ? ` <span class="meta">of ${req}</span>` : ""}</b><span>questions</span></div><div><b>${flagged}</b><span>flagged</span></div>
-    <div><b>${u.input + u.output ? (u.input + u.output).toLocaleString() : "0"}</b><span>${u.input + u.output ? "tokens used" : "tokens (saved results reused)"}</span></div>`;
-  $("revFilter").querySelectorAll("button").forEach(b => { b.setAttribute("aria-pressed", b.dataset.v === reviewFilter); b.onclick = () => { reviewFilter = b.dataset.v; renderReview(); }; });
-  const list = qs.map((q, i) => [q, i]).filter(([q]) => reviewFilter === "all" || q.flag);
-  $("revList").innerHTML = list.length ? list.map(([q, i]) => reviewCard(q, i, true)).join("") : `<p class="meta">No flagged questions.</p>`;
-  $("revList").querySelectorAll("[data-delq]").forEach(b => b.onclick = async () => {
-    if (!confirm("Remove this question from the quiz?")) return;
-    await api(`/api/sets/${s.id}/questions/${b.dataset.delq}`, {method: "DELETE"});
-    reviewSet = await api(`/api/sets/${s.id}`); renderReview();
+routes.course = async id => {
+  const c = await api(`/api/courses/${id}`);
+  const ready = c.notes.filter(n => n.status === "ready");
+  view(`
+    <div class="top"><a class="link" href="#/courses">← Courses</a>${c.can_edit ? `<button class="link danger" id="delCourse">Delete course</button>` : ""}</div>
+    <h1>${esc(c.code)} <span class="rx">${esc(c.title)}</span></h1>
+    <p class="meta">${c.shared ? "Class course" : "Personal course"} · ${c.practised} of ${c.questions} questions practised${c.accuracy !== null ? ` · ${c.accuracy}% right` : ""}</p>
+    <div class="row" style="margin:12px 0"><button class="btn grow" id="mixBtn" ${c.questions ? "" : "disabled"}>Practise this course</button><button class="btn ghost grow" id="makeBtn" ${ready.length ? "" : "disabled"}>Make a quiz</button></div>
+    <h2>Notes</h2>
+    ${c.notes.map(n => `<div class="card">
+      <div class="row between"><b>${esc(n.title)}</b><span>${n.shared ? `<span class="badge">Class library</span>` : `<span class="badge flag">Private</span>`}</span></div>
+      <p class="meta">${n.status === "ready" ? `${n.pages} page${n.pages === 1 ? "" : "s"} · ${n.topics.length} topic${n.topics.length === 1 ? "" : "s"} · ${n.words.toLocaleString()} words` : n.status === "error" ? `<span class="err">Couldn't read: ${esc(n.error)}</span>` : "Reading… (scanned or handwritten pages take a minute)"}</p>
+      <div class="row">${n.status === "ready" ? `<button class="btn small ghost" data-read="${n.id}">Read</button>` : ""}${n.mine || (ME.is_admin && n.shared) ? `<button class="link danger" data-delnote="${n.id}">Delete</button>` : ""}</div></div>`).join("") || `<div class="empty">No notes yet.</div>`}
+    <div class="panel">
+      <b>Upload notes</b><p class="meta">PDF (typed, scanned or handwritten), Word or text, up to 25 MB.${ME.usage.upload_limit !== null ? ` ${Math.max(0, ME.usage.upload_limit - ME.usage.uploads)} upload(s) left today.` : ""}</p>
+      <input type="file" id="upFile" accept=".pdf,.docx,.txt,.md">
+      ${ME.is_admin && c.shared ? `<label class="check"><input type="checkbox" id="upShared" checked> Add to the class library (everyone can practise from it)</label>` : ""}
+      <button class="btn small" id="upBtn" style="margin-top:8px">Upload</button>
+      <div class="log hidden" id="upLog"></div><div class="err hidden" id="upErr"></div>
+    </div>
+    <h2>Quizzes</h2>
+    ${c.quiz_list.map(quizCard).join("") || `<div class="empty">No quizzes yet. Use “Make a quiz”.</div>`}`);
+  wireQuizCards();
+  $("mixBtn").onclick = () => startRound({pool: "course", course_id: c.id, count: 20});
+  $("makeBtn").onclick = () => location.hash = `#/make/${c.id}`;
+  if ($("delCourse")) $("delCourse").onclick = async () => { if (confirm("Delete this course? Its notes and quizzes stay in the library without a course.")) { await api(`/api/courses/${c.id}`, {method: "DELETE"}); location.hash = "#/courses"; } };
+  document.querySelectorAll("[data-read]").forEach(b => b.onclick = () => location.hash = `#/notes/${b.dataset.read}`);
+  document.querySelectorAll("[data-delnote]").forEach(b => b.onclick = async () => { if (confirm("Delete these notes?")) { await api(`/api/materials/${b.dataset.delnote}`, {method: "DELETE"}); route(); } });
+  $("upBtn").onclick = async () => {
+    const f = $("upFile").files[0]; if (!f) return toast("Choose a file first");
+    const fd = new FormData(); fd.append("file", f); fd.append("course_id", c.id); fd.append("shared", !!($("upShared") && $("upShared").checked));
+    $("upBtn").disabled = true; $("upLog").classList.remove("hidden"); $("upErr").classList.add("hidden");
+    try { const r = await api("/api/materials", {method: "POST", body: fd}); await waitJob(r.job_id, $("upLog")); ME = await api("/api/me"); route(); }
+    catch (e) { showErr($("upErr"), e); $("upBtn").disabled = false; }
+  };
+};
+
+// ---------------- reader ----------------
+routes.notes = async id => {
+  const [m, t] = await Promise.all([api(`/api/materials/${id}`), api(`/api/materials/${id}/text`)]);
+  view(`<div class="top"><a class="link" href="#/course/${m.course_id}">← Back</a><span class="meta">${m.pages} pages</span></div>
+    <h1>${esc(m.title)}</h1><p class="meta">${esc(m.name)}${m.report && m.report.ocr ? " · read from scanned/handwritten pages, check unclear terms against the original" : ""}</p>
+    <div class="reader">${t.sections.map(s => `<h3>${esc(s.title)}</h3><p class="meta">p.${s.pages[0]}${s.pages[1] !== s.pages[0] ? "–" + s.pages[1] : ""} · <button class="link" data-quizsec="${esc(s.id)}">Quiz me on this</button></p>
+      ${s.paragraphs.map(p => /^\[.*\]$/.test(p) ? `<p><b>${esc(p.slice(1, -1))}</b></p>` : `<p>${esc(p)}</p>`).join("")}`).join("") || `<div class="empty">No readable text.</div>`}</div>`);
+  document.querySelectorAll("[data-quizsec]").forEach(b => b.onclick = () => { sessionStorage.setItem("preselect", JSON.stringify({material: m.id, section: b.dataset.quizsec})); location.hash = `#/make/${m.course_id}`; });
+};
+
+// ---------------- make a quiz ----------------
+routes.make = async cid => {
+  const [c, profs] = await Promise.all([api(`/api/courses/${cid}`), PROFILES || api("/api/profiles")]);
+  PROFILES = profs;
+  let pre = null; try { pre = JSON.parse(sessionStorage.getItem("preselect")); sessionStorage.removeItem("preselect"); } catch (e) {}
+  const notes = c.notes.filter(n => n.status === "ready" && n.topics.length);
+  const pep = PROFILES.find(p => p.key === "pep");
+  let profile = "pep", diff = "mixed";
+  view(`
+    <div class="top"><a class="link" href="#/course/${c.id}">← ${esc(c.code)}</a></div>
+    <h1>Make a <span class="rx">quiz</span></h1>
+    <div class="panel"><b>What to cover</b><p class="meta">Tick whole files or single topics.</p>
+      ${notes.map(n => `<div style="margin-top:8px"><label class="check"><input type="checkbox" data-mat="${n.id}" ${!pre || pre.material === n.id ? "checked" : ""}><b>${esc(n.title)}</b></label>
+        <div style="padding-left:28px">${n.topics.map(t => `<label class="check meta"><input type="checkbox" data-sec="${esc(t.id)}" data-of="${n.id}" ${!pre ? "checked" : pre.material === n.id && pre.section === t.id ? "checked" : ""}>${esc(t.title)} <span class="pill">${t.words} words</span></label>`).join("")}</div></div>`).join("")}
+    </div>
+    <div class="panel">
+      <label class="f" style="margin-top:0">Number of questions</label><input type="number" id="mN" min="1" max="100" value="${pre ? 5 : 20}" inputmode="numeric">
+      <label class="f">Difficulty</label><div class="seg" id="mDiff"><button data-v="easy">Easy</button><button data-v="mixed" aria-pressed="true">Mixed</button><button data-v="hard">Hard</button></div>
+      <label class="f">Exam style</label><div class="seg" id="mProf"><button data-v="pep" aria-pressed="true">PEP</button><button data-v="undergrad">Undergraduate</button></div>
+      <div id="pepBox"><label class="f">PEP course</label><select id="mPep"><option value="">(general)</option>${Object.entries(pep ? pep.courses : {}).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join("")}</select></div>
+      <div id="ugBox" class="hidden"><div class="row"><div class="grow"><label class="f">Level</label><input type="text" id="mLevel" placeholder="500L"></div><div class="grow"><label class="f">Programme</label><input type="text" id="mProg" placeholder="Pharm. D"></div></div>
+        <label class="f">School</label><input type="text" id="mInst" placeholder="e.g. UNIBEN"></div>
+      <label class="check" style="margin-top:10px"><input type="checkbox" id="mFact" checked> Fact-check answers against standard references</label>
+      ${ME.is_pro ? `<label class="check"><input type="checkbox" id="mShare" ${ME.is_admin && c.shared ? "checked" : ""}> Share with the class</label>` : `<p class="meta">Sharing quizzes with classmates is a Pro feature.</p>`}
+      <label class="f">Title (optional)</label><input type="text" id="mTitle" placeholder="e.g. Histamine revision">
+      <p class="meta" style="margin-top:10px">${ME.usage.generation_limit === null ? "No daily limit on your account." : `${Math.max(0, ME.usage.generation_limit - ME.usage.generations)} of ${ME.usage.generation_limit} new quizzes left today. Re-making a quiz from the same notes and settings is free.`}</p>
+      <button class="btn wide" id="mGo" style="margin-top:6px">Generate quiz</button>
+      <div class="log hidden" id="mLog"></div><div class="err hidden" id="mErr"></div>
+    </div>`);
+  document.querySelectorAll("[data-mat]").forEach(b => b.onchange = () => document.querySelectorAll(`[data-of="${b.dataset.mat}"]`).forEach(s => s.checked = b.checked));
+  document.querySelectorAll("[data-sec]").forEach(s => s.onchange = () => { const any = [...document.querySelectorAll(`[data-of="${s.dataset.of}"]`)].some(x => x.checked); document.querySelector(`[data-mat="${s.dataset.of}"]`).checked = any; });
+  const seg = (id, set) => document.querySelectorAll(`#${id} button`).forEach(b => b.onclick = () => { document.querySelectorAll(`#${id} button`).forEach(x => x.setAttribute("aria-pressed", x === b)); set(b.dataset.v); });
+  seg("mDiff", v => diff = v);
+  seg("mProf", v => { profile = v; $("pepBox").classList.toggle("hidden", v !== "pep"); $("ugBox").classList.toggle("hidden", v === "pep"); });
+  $("mGo").onclick = async () => {
+    const secs = [...document.querySelectorAll("[data-sec]:checked")];
+    const mats = [...new Set(secs.map(s => +s.dataset.of))];
+    if (!mats.length) return toast("Tick at least one topic");
+    const allTopics = mats.every(id => [...document.querySelectorAll(`[data-of="${id}"]`)].every(s => s.checked));
+    $("mGo").disabled = true; $("mLog").classList.remove("hidden"); $("mErr").classList.add("hidden");
+    try {
+      const r = await api("/api/quizzes/generate", {method: "POST", json: {course_id: c.id, material_ids: mats, section_ids: allTopics ? null : secs.map(s => s.dataset.sec),
+        questions: Math.max(1, Math.min(100, +$("mN").value || 20)), difficulty: diff, fact_check: $("mFact").checked, profile,
+        course_code: profile === "pep" ? ($("mPep").value || null) : null, level: $("mLevel").value || null, programme: $("mProg").value || null,
+        institution: $("mInst").value || null, share: !!($("mShare") && $("mShare").checked), title: $("mTitle").value || null}});
+      const j = await waitJob(r.job_id, $("mLog")); ME = await api("/api/me");
+      location.hash = `#/quiz/${j.result.quiz_id}`;
+    } catch (e) { showErr($("mErr"), e); $("mGo").disabled = false; }
+  };
+};
+
+// ---------------- quiz review & edit ----------------
+routes.quiz = async (id, filter = "all") => {
+  const q = await api(`/api/quizzes/${id}`);
+  const list = q.questions.filter(x => filter === "all" || (x.flag && !x.checked));
+  view(`
+    <div class="top"><a class="link" href="#/course/${q.course_id}">← Course</a>${q.can_edit ? `<button class="link danger" id="delQuiz">Delete quiz</button>` : ""}</div>
+    <h1>${esc(q.title)}</h1>
+    <p class="meta">by ${esc(q.by)} · ${q.shared ? "shared with the class" : "private"}${q.can_edit && ME.is_pro ? ` · <button class="link" id="shareQ">${q.shared ? "Make private" : "Share with class"}</button>` : ""}</p>
+    ${(q.warnings || []).map(w => `<p class="meta">ℹ ${esc(w)}</p>`).join("")}
+    <div class="stats"><div><b>${q.count}</b><span>questions</span></div><div><b>${q.flagged}</b><span>flagged to review</span></div><div><b>${q.accuracy !== null ? q.accuracy + "%" : "–"}</b><span>your score</span></div></div>
+    <div class="row" style="margin-bottom:12px"><button class="btn grow" id="qPractise">Practise</button><button class="btn ghost grow" id="qExam">Timed exam</button></div>
+    <div class="seg" style="margin-bottom:12px"><button data-f="all" aria-pressed="${filter === "all"}">All</button><button data-f="flag" aria-pressed="${filter === "flag"}">Flagged</button></div>
+    ${list.map(x => qCard(x, q.can_edit)).join("") || `<div class="empty">Nothing flagged. 👍</div>`}`);
+  document.querySelectorAll("[data-f]").forEach(b => b.onclick = () => routes.quiz(id, b.dataset.f));
+  $("qPractise").onclick = () => startRound({quiz_id: q.id});
+  $("qExam").onclick = () => startRound({quiz_id: q.id, mode: "exam", minutes: Math.max(5, Math.round(q.count * 1.2))});
+  if ($("shareQ")) $("shareQ").onclick = async () => { await api(`/api/quizzes/${q.id}`, {method: "PATCH", json: {share: !q.shared}}); routes.quiz(id, filter); };
+  if ($("delQuiz")) $("delQuiz").onclick = async () => { if (confirm("Delete this quiz for everyone?")) { await api(`/api/quizzes/${q.id}`, {method: "DELETE"}); location.hash = `#/course/${q.course_id}`; } };
+  wireQCards(() => routes.quiz(id, filter));
+};
+const qCard = (x, canEdit) => `<div class="card qcard ${x.flag && !x.checked ? "flagged" : ""}" data-qid="${x.id}">
+  <div class="meta">${esc(x.topic)}${x.pages && x.pages.length ? ` · p.${x.pages[0]}` : ""}${x.flag && !x.checked ? `<span class="badge flag">flagged</span>` : ""}${x.checked ? `<span class="badge ok">checked</span>` : ""}${x.edited ? `<span class="badge">edited</span>` : ""}</div>
+  <div class="s">${esc(x.q)}</div><ol type="A">${x.o.map((o, k) => `<li class="${k === x.a ? "ans" : ""}">${esc(o)}</li>`).join("")}</ol>
+  <div class="meta">${esc(x.e)}</div>
+  ${x.flag && !x.checked ? `<div class="note"><b>⚠ Fact-check:</b> ${esc(x.flag)}</div>` : ""}
+  <div class="row" style="margin-top:8px">
+    <button class="link" data-star="${x.id}" data-on="${x.marked ? 1 : 0}">${x.marked ? "★ Starred" : "☆ Check later"}</button>
+    ${canEdit ? `<button class="link" data-edit="${x.id}">Edit</button>${x.flag && !x.checked ? `<button class="link" data-ok="${x.id}">Mark as correct</button>` : ""}<button class="link" data-regen="${x.id}">Replace</button><button class="link danger" data-rm="${x.id}">Remove</button>` : ""}
+  </div><div class="edit"></div></div>`;
+function wireQCards(refresh) {
+  document.querySelectorAll("[data-star]").forEach(b => b.onclick = async () => { const on = b.dataset.on === "1"; await api(`/api/marks/${b.dataset.star}`, {method: on ? "DELETE" : "POST"}); b.dataset.on = on ? 0 : 1; b.textContent = on ? "☆ Check later" : "★ Starred"; });
+  document.querySelectorAll("[data-ok]").forEach(b => b.onclick = async () => { await api(`/api/questions/${b.dataset.ok}`, {method: "PATCH", json: {checked: true}}); toast("Marked as correct"); refresh(); });
+  document.querySelectorAll("[data-rm]").forEach(b => b.onclick = async () => { if (confirm("Remove this question?")) { await api(`/api/questions/${b.dataset.rm}`, {method: "DELETE"}); refresh(); } });
+  document.querySelectorAll("[data-regen]").forEach(b => b.onclick = async () => {
+    if (!confirm("Replace this question with a new one from the same topic?")) return;
+    b.textContent = "Writing a new one…"; b.disabled = true;
+    try { const r = await api(`/api/questions/${b.dataset.regen}/regenerate`, {method: "POST"}); await waitJob(r.job_id); toast("Replaced"); refresh(); } catch (e) { toast(e.message); b.textContent = "Replace"; b.disabled = false; }
   });
-  $("revPractice").onclick = () => startQuiz(s.id, reviewFilter === "flag" ? list.map(([, i]) => i) : null);
-  $("delSet").onclick = async () => { if (!confirm("Delete this whole quiz?")) return; await api(`/api/sets/${s.id}`, {method: "DELETE"}); show("home"); loadMaterials(); };
+  document.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => {
+    const card = b.closest(".qcard"), box = card.querySelector(".edit");
+    const x = {q: card.querySelector(".s").textContent, o: [...card.querySelectorAll("li")].map(li => li.textContent), a: [...card.querySelectorAll("li")].findIndex(li => li.classList.contains("ans")), e: (card.querySelectorAll(":scope > .meta")[1] || {}).textContent || ""};
+    box.innerHTML = `<label class="f">Question</label><textarea class="eq">${esc(x.q)}</textarea>
+      <label class="f">Options (tick the correct one)</label>${x.o.map((o, k) => `<div class="row" style="margin-bottom:6px"><input type="radio" name="ea${b.dataset.edit}" value="${k}" ${k === x.a ? "checked" : ""}><input type="text" class="eo grow" value="${esc(o)}" style="flex:1"></div>`).join("")}
+      <label class="f">Explanation</label><textarea class="ee">${esc(x.e)}</textarea>
+      <div class="row" style="margin-top:8px"><button class="btn small es">Save</button><button class="link ec">Cancel</button></div><div class="err hidden"></div>`;
+    box.querySelector(".ec").onclick = () => box.innerHTML = "";
+    box.querySelector(".es").onclick = async () => {
+      const r = box.querySelector("input[type=radio]:checked");
+      try { await api(`/api/questions/${b.dataset.edit}`, {method: "PATCH", json: {q: box.querySelector(".eq").value, o: [...box.querySelectorAll(".eo")].map(i => i.value), a: r ? +r.value : 0, e: box.querySelector(".ee").value, checked: true}}); toast("Saved"); refresh(); }
+      catch (e) { showErr(box.querySelector(".err"), e); }
+    };
+  });
 }
 
-(async () => {
-  try { PROFILES = await api("/api/profiles"); } catch (e) {}
-  loadMaterials();
-})();
+// ---------------- practise ----------------
+routes.practise = async () => {
+  const [t, cs] = await Promise.all([api("/api/today"), api("/api/courses")]);
+  view(`
+    <h1>Practise</h1>
+    <div class="row">
+      <div class="card click grow" data-pool="missed"><b>${t.missed}</b> missed<p class="meta">Questions you got wrong</p></div>
+      <div class="card click grow" data-pool="later"><b>${t.later}</b> starred<p class="meta">Marked to check later</p></div>
+    </div>
+    <h2>By course</h2>
+    ${cs.filter(c => c.questions).map(c => `<div class="card"><div class="row between"><b>${esc(c.code)}</b><span class="meta">${c.practised}/${c.questions} practised${c.accuracy !== null ? ` · ${c.accuracy}%` : ""}</span></div>
+      <div>${esc(c.title)}</div>${meter(pct(c.practised, c.questions))}
+      <div class="row" style="margin-top:10px"><button class="btn small" data-mix="${c.id}">Practise 20</button><button class="btn small ghost" data-mexam="${c.id}">Timed exam</button></div></div>`).join("") || `<div class="empty">No questions yet. Make a quiz from a course's notes first.</div>`}
+    <div class="panel hidden" id="examBox"><b>Timed exam</b>
+      <div class="row"><div class="grow"><label class="f">Questions</label><input type="number" id="exN" value="40" min="5" max="200"></div><div class="grow"><label class="f">Minutes</label><input type="number" id="exM" value="45" min="5" max="600"></div></div>
+      <button class="btn wide" id="exGo" style="margin-top:12px">Start exam</button></div>`);
+  document.querySelectorAll("[data-pool]").forEach(c => c.onclick = () => startRound({pool: c.dataset.pool}));
+  document.querySelectorAll("[data-mix]").forEach(b => b.onclick = () => startRound({pool: "course", course_id: +b.dataset.mix, count: 20}));
+  document.querySelectorAll("[data-mexam]").forEach(b => b.onclick = () => { $("examBox").classList.remove("hidden"); $("examBox").scrollIntoView({behavior: "smooth"}); $("exGo").onclick = () => startRound({pool: "course", course_id: +b.dataset.mexam, count: +$("exN").value || 40, mode: "exam", minutes: +$("exM").value || 45}); });
+};
+
+async function startRound(opts) {
+  try { play = await api("/api/attempts", {method: "POST", json: Object.assign({mode: "practice"}, opts)}); }
+  catch (e) { return toast(e.message); }
+  play.i = 0; play.ans = {}; play.done = {}; play.ord = {};
+  for (const q of play.questions) play.ord[q.id] = order(q);
+  if (play.mode === "exam") play.ends = Date.now() + play.minutes * 60000;
+  location.hash = "#/play";
+}
+const PIN = /^\s*(all|none|any|both|neither)\s*(of (the|these|them)\b.*|the (above|options?)\.?)?\s*$|\bthe above\b/i;
+function order(q) { const idx = q.o.map((_, k) => k), pin = idx.filter(k => PIN.test(q.o[k])), rest = idx.filter(k => !pin.includes(k));
+  for (let i = rest.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [rest[i], rest[j]] = [rest[j], rest[i]]; } return rest.concat(pin); }
+
+routes.play = async () => {
+  if (!play) { location.hash = "#/practise"; return; }
+  const q = play.questions[play.i], ord = play.ord[q.id], res = play.done[q.id], chosen = play.ans[q.id], exam = play.mode === "exam";
+  view(`
+    <div class="top"><button class="link" id="pQuit">${exam ? "✓ Submit" : "✕ End"}</button>${exam ? `<span class="timer" id="pTimer"></span>` : ""}<span class="meta">${play.i + 1} / ${play.questions.length}</span></div>
+    <div class="bar"><i style="width:${pct(play.i, play.questions.length)}%"></i></div>
+    ${exam ? `<div class="grid">${play.questions.map((x, k) => `<button data-go="${k}" class="${play.ans[x.id] !== undefined ? "done" : ""} ${k === play.i ? "cur" : ""}">${k + 1}</button>`).join("")}</div>` : ""}
+    <div class="row between"><span class="meta">${esc(q.topic)}</span><button class="link" id="pStar">${q.marked ? "★ Starred" : "☆ Check later"}</button></div>
+    <div class="stem">${esc(q.q)}</div>
+    <div class="opts">${ord.map((k, pos) => { let cls = ""; if (res) { if (k === res.a) cls = "right"; else if (k === res.chosen) cls = "wrong"; }
+      return `<button class="opt ${cls}" data-k="${k}" aria-pressed="${!res && chosen === k}" ${res ? "disabled" : ""}><span class="k">${"ABCDE"[pos]}</span><span>${esc(q.o[k])}</span></button>`; }).join("")}</div>
+    ${res ? `<div class="fb ${res.correct ? "" : "bad"}"><b>${res.correct ? "Correct." : "Not quite. Answer: " + "ABCDE"[ord.indexOf(res.a)] + " – " + esc(q.o[res.a])}</b><p style="margin:4px 0 0">${esc(res.e)}</p></div>
+      ${res.flag && !res.checked ? `<div class="note"><b>⚠ Fact-check:</b> ${esc(res.flag)}</div>` : ""}
+      <p class="meta" style="margin-top:8px">From ${esc(q.file)}${q.pages.length ? `, p.${q.pages[0]}` : ""}</p>` : ""}
+    <div class="row" style="margin-top:18px">${play.i > 0 ? `<button class="btn ghost grow" id="pPrev">Back</button>` : ""}<button class="btn grow" id="pNext"></button></div>
+    <div class="err hidden" id="pErr"></div>`);
+  const last = play.i === play.questions.length - 1;
+  $("pNext").textContent = exam ? (last ? "Submit exam" : "Next") : res ? (last ? "See results" : "Next") : chosen === undefined ? "Skip" : "Check";
+  document.querySelectorAll(".opt").forEach(b => b.onclick = () => { play.ans[q.id] = +b.dataset.k; route(); });
+  document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { play.i = +b.dataset.go; route(); });
+  $("pStar").onclick = async () => { await api(`/api/marks/${q.id}`, {method: q.marked ? "DELETE" : "POST"}); q.marked = !q.marked; $("pStar").textContent = q.marked ? "★ Starred" : "☆ Check later"; };
+  if ($("pPrev")) $("pPrev").onclick = () => { play.i--; route(); };
+  $("pNext").onclick = async () => {
+    if (!exam && !res && chosen !== undefined) {
+      try { play.done[q.id] = await api(`/api/attempts/${play.id}/answer`, {method: "POST", json: {question_id: q.id, chosen}}); route(); } catch (e) { showErr($("pErr"), e); }
+      return;
+    }
+    if (!last) { play.i++; route(); return; }
+    if (exam) { const left = play.questions.filter(x => play.ans[x.id] === undefined).length; if (left && !confirm(`${left} unanswered. Submit anyway?`)) return; }
+    finishRound();
+  };
+  $("pQuit").onclick = () => { if (exam ? confirm("Submit the exam now?") : confirm("End this round? Checked answers are saved.")) finishRound(); };
+  if (exam) {
+    const tick = () => { const s = Math.max(0, Math.round((play.ends - Date.now()) / 1000)); const el = $("pTimer"); if (!el) return;
+      el.textContent = `⏱ ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; el.className = "timer" + (s <= 60 ? " crit" : s <= 300 ? " warn" : "");
+      if (s === 0) { clearInterval(timerId); toast("Time is up"); finishRound(); } };
+    tick(); timerId = setInterval(tick, 1000);
+  }
+};
+async function finishRound() {
+  clearInterval(timerId);
+  const answers = play.mode === "exam" ? play.ans : {};
+  try { const r = await api(`/api/attempts/${play.id}/finish`, {method: "POST", json: {answers}}); play = null; sessionStorage.setItem("result", JSON.stringify(r)); location.hash = "#/results"; }
+  catch (e) { toast(e.message); }
+}
+routes.results = async () => {
+  const r = JSON.parse(sessionStorage.getItem("result") || "null"); if (!r) { location.hash = "#/practise"; return; }
+  const base = r.mode === "exam" ? r.total : r.answered, p = pct(r.correct, base), wrong = r.review.filter(x => !x.correct);
+  view(`
+    <p class="meta">${esc(r.title)} · ${r.mode === "exam" ? "Exam" : "Practice"} · ${Math.floor(r.seconds / 60)} min</p>
+    <div class="score">${p}%</div>
+    <p class="lede">${r.correct} of ${base} correct${r.mode !== "exam" && r.total > r.answered ? ` (${r.total - r.answered} skipped)` : ""}. ${p >= 70 ? "Well above a typical pass mark." : p >= 50 ? "Around the pass line: go through the ones you missed." : "Below the pass line for now. The explanations below are the fastest fix."}</p>
+    ${r.topics.length ? `<h2>By topic</h2><div class="panel">${r.topics.map(t => `<div style="margin-bottom:10px"><div class="row between"><span>${esc(t.topic)}</span><b>${t.correct}/${t.answered}</b></div>${meter(pct(t.correct, t.answered), pct(t.correct, t.answered) >= 70 ? "ok" : pct(t.correct, t.answered) < 50 ? "bad" : "")}</div>`).join("")}</div>` : ""}
+    <div class="row" style="margin:10px 0 6px">${wrong.length ? `<button class="btn grow" id="rRetry">Retry the ${wrong.length} I missed</button>` : ""}<a class="btn ghost grow" href="#/practise">Done</a></div>
+    ${wrong.length ? `<h2>Review</h2>${wrong.map(x => `<div class="card qcard"><div class="meta">${esc(x.topic)}${x.chosen === null ? `<span class="badge">skipped</span>` : `<span class="badge bad">missed</span>`}</div>
+      <div class="s">${esc(x.q)}</div>${x.chosen !== null ? `<p class="meta" style="color:var(--bad)">Your answer: ${esc(x.o[x.chosen])}</p>` : ""}
+      <p style="color:var(--ok);font-weight:700;margin:0 0 4px">Correct: ${esc(x.o[x.a])}</p><div class="meta">${esc(x.e)}</div>
+      ${x.flag && !x.checked ? `<div class="note"><b>⚠ Fact-check:</b> ${esc(x.flag)}</div>` : ""}</div>`).join("")}` : ""}`);
+  if ($("rRetry")) $("rRetry").onclick = () => startRound({question_ids: wrong.map(x => x.id)});
+};
+
+// ---------------- progress ----------------
+routes.progress = async () => {
+  const p = await api("/api/progress");
+  view(`
+    <h1>Progress</h1>
+    <div class="stats"><div><b>${p.answered}</b><span>questions practised</span></div><div><b>${p.accuracy !== null ? p.accuracy + "%" : "–"}</b><span>right on last try</span></div></div>
+    ${p.courses.length ? `<h2>By course</h2><div class="panel">${p.courses.map(c => `<div style="margin-bottom:10px"><div class="row between"><span><b>${esc(c.code)}</b> ${esc(c.title)}</span><b>${c.accuracy}%</b></div><p class="meta" style="margin:0">${c.answered} practised</p>${meter(c.accuracy, c.accuracy >= 70 ? "ok" : c.accuracy < 50 ? "bad" : "")}</div>`).join("")}</div>` : ""}
+    ${p.weak.length ? `<h2>Weakest topics</h2><div class="panel">${p.weak.map(w => `<div style="margin-bottom:10px"><div class="row between"><span>${esc(w.topic)} <span class="pill">${esc(w.course)}</span></span><b>${w.correct}/${w.answered}</b></div>${meter(pct(w.correct, w.answered), "bad")}</div>`).join("")}</div><button class="btn wide" data-pool="missed">Practise my missed questions</button>` : ""}
+    <h2>History</h2>${p.history.map(roundRow).join("") || `<div class="empty">No rounds yet.</div>`}`);
+  document.querySelectorAll("[data-pool]").forEach(c => c.onclick = () => startRound({pool: c.dataset.pool}));
+};
+
+// ---------------- account & admin ----------------
+routes.account = async () => {
+  ME = await api("/api/me");
+  view(`
+    <div class="top"><a class="link" href="#/today">← Today</a></div>
+    <h1>${esc(ME.name)}</h1><p class="meta">${esc(ME.email)} · ${ME.is_admin ? "Admin" : ME.plan === "pro" ? "Pro" : "Free plan"}</p>
+    <div class="panel"><b>Today</b><p class="meta">${ME.usage.generations} new quiz${ME.usage.generations === 1 ? "" : "zes"}${ME.usage.generation_limit !== null ? ` of ${ME.usage.generation_limit}` : ""} · ${ME.usage.uploads} upload${ME.usage.uploads === 1 ? "" : "s"}${ME.usage.upload_limit !== null ? ` of ${ME.usage.upload_limit}` : ""}</p>
+      ${ME.is_pro ? "" : `<p class="meta">Pro (coming later): share your quizzes with classmates and make unlimited quizzes.</p>`}</div>
+    ${ME.is_admin ? `<a class="btn wide" href="#/admin" style="margin-bottom:12px">Class admin</a>` : ""}
+    <div class="panel"><b>Change password</b><label class="f">Current password</label><input type="password" id="pwOld"><label class="f">New password</label><input type="password" id="pwNew" minlength="8">
+      <button class="btn small" id="pwGo" style="margin-top:10px">Change</button><div class="err hidden" id="pwErr"></div></div>
+    <button class="btn ghost wide" id="logout">Log out</button>`);
+  $("pwGo").onclick = async () => { try { await api("/api/password", {method: "POST", json: {old: $("pwOld").value, new: $("pwNew").value}}); toast("Password changed"); $("pwOld").value = $("pwNew").value = ""; } catch (e) { showErr($("pwErr"), e); } };
+  $("logout").onclick = async () => { await api("/api/logout", {method: "POST"}); ME = null; location.hash = "#/login"; };
+};
+routes.admin = async () => {
+  const a = await api("/api/admin");
+  view(`
+    <div class="top"><a class="link" href="#/account">← Account</a></div>
+    <h1>Class <span class="rx">admin</span></h1>
+    <div class="panel"><b>Invite classmates</b><p class="meta">Share this code. Anyone with it can sign up.</p>
+      <div class="row"><input type="text" id="adCode" value="${esc(a.settings.invite_code)}" style="flex:1;font-weight:700;letter-spacing:.05em"><button class="btn small" id="adCodeGo">Save</button></div>
+      <label class="f">New quizzes per free student per day</label><input type="number" id="adLimit" value="${a.settings.daily_limit}" min="0" max="100">
+      <label class="f">Uploads per free student per day</label><input type="number" id="adUp" value="${a.settings.upload_limit}" min="0" max="100">
+      <button class="btn small" id="adLimGo" style="margin-top:10px">Save limits</button><div class="err hidden" id="adErr"></div></div>
+    <h2>Classmates (${a.users.length})</h2>
+    ${a.users.map(u => `<div class="card"><div class="row between"><b>${esc(u.name)}</b><span class="badge ${u.role === "admin" ? "ok" : u.plan === "pro" ? "ok" : ""}">${u.role === "admin" ? "Admin" : u.plan === "pro" ? "Pro" : "Free"}</span></div>
+      <p class="meta">${esc(u.email)} · seen ${when(u.last_seen)} · today: ${u.today.generations} quizzes, ${u.today.tokens.toLocaleString()} tokens</p>
+      ${u.role === "admin" ? "" : `<div class="row"><button class="link" data-plan="${u.id}" data-v="${u.plan === "pro" ? "free" : "pro"}">${u.plan === "pro" ? "Set to Free" : "Give Pro"}</button><button class="link" data-reset="${u.id}">Reset password</button><button class="link danger" data-deluser="${u.id}">Remove</button></div>`}</div>`).join("")}`);
+  $("adCodeGo").onclick = async () => { try { await api("/api/admin/settings", {method: "PUT", json: {invite_code: $("adCode").value}}); toast("Invite code saved"); routes.admin(); } catch (e) { showErr($("adErr"), e); } };
+  $("adLimGo").onclick = async () => { try { await api("/api/admin/settings", {method: "PUT", json: {daily_limit: +$("adLimit").value, upload_limit: +$("adUp").value}}); toast("Limits saved"); } catch (e) { showErr($("adErr"), e); } };
+  document.querySelectorAll("[data-plan]").forEach(b => b.onclick = async () => { await api(`/api/admin/users/${b.dataset.plan}`, {method: "PATCH", json: {plan: b.dataset.v}}); routes.admin(); });
+  document.querySelectorAll("[data-reset]").forEach(b => b.onclick = async () => { if (!confirm("Reset this classmate's password?")) return; const r = await api(`/api/admin/users/${b.dataset.reset}/reset-password`, {method: "POST"}); prompt("Give them this temporary password (they can change it in Account):", r.temporary_password); });
+  document.querySelectorAll("[data-deluser]").forEach(b => b.onclick = async () => { if (confirm("Remove this account and all its private notes and quizzes?")) { await api(`/api/admin/users/${b.dataset.deluser}`, {method: "DELETE"}); routes.admin(); } });
+};
+
+route();
 </script>
 </body>
 </html>

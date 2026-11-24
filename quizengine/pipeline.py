@@ -78,3 +78,23 @@ def prepare(path: str | Path, questions: int, profile: Profile, course: str | No
     result = split(cleaned, exclude=pattern, start_title=Path(path).stem.replace("_", " "))
     plan = make_plan(result.sections, questions, max_input_tokens, max_per_call)
     return Prepared(str(path), profile, course_name, doc, cleaned, result, plan, ocr)
+
+
+@dataclass
+class Selection:
+    """A quiz to generate from sections already prepared and stored (possibly from several files).
+    Has the attributes generate() reads from a Prepared."""
+    source: str
+    profile: Profile
+    course: str | None
+    plan: Plan
+
+
+def select(sections: list, questions: int, profile: Profile, course: str | None = None, source: str = "",
+           max_input_tokens: int = 6000, max_per_call: int = 10) -> Selection:
+    """Plan a quiz from stored sections (Section objects or their to_json() dicts)."""
+    from .split import Section
+    secs = [s if isinstance(s, Section) else Section.from_json(s) for s in sections]
+    course_name = profile.course_name(course)
+    profile.render(profile.audience)
+    return Selection(source, profile, course_name, make_plan(secs, questions, max_input_tokens, max_per_call))
